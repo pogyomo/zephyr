@@ -57,6 +57,8 @@ pub enum TokenKind {
     EQ,
     /// "!="
     NE,
+    /// "="
+    Assign,
     /// "+="
     AddAssign,
     /// "-="

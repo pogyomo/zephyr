@@ -56,7 +56,7 @@ Below is operators and symbols which the lexer recognize.
 
 ```
 + - * / % & | ^ << >> && || ! < > <= >= == !=
-+= -= *= /= %= &= |= ^= <<= >>=
+= += -= *= /= %= &= |= ^= <<= >>=
 ```
 
 ```
