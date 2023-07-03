@@ -14,6 +14,7 @@ name = "zephyr-lexer"
 version = "0.1.0"
 dependencies = [
  "zephyr-span",
+ "zephyr-token",
 ]
 
 [[package]]
