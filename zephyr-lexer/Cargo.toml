@@ -4,3 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+zephyr-span  = { path = "../zephyr-span" }
+zephyr-token = { path = "../zephyr-token" }

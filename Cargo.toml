@@ -2,4 +2,6 @@
 members = [
     "zephyr",
     "zephyr-lexer",
+    "zephyr-span",
+    "zephyr-token",
 ]
