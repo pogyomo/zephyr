@@ -10,6 +10,8 @@
 //! the span of the struct by calling `span()`.
 //!
 //! ```
+//! use zephyr_span::{Span, Spannable};
+//!
 //! struct TwoSpan {
 //!     one: One,
 //!     two: Two,
@@ -67,7 +69,7 @@ impl Span {
     /// ```
     /// use zephyr_span::Span;
     /// let span = Span::new(0, 10);
-    /// assert_eq!(span.offset(), 10);
+    /// assert_eq!(span.len(), 10);
     /// ```
     pub fn len(&self) -> usize {
         self.len
