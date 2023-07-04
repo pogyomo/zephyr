@@ -1,28 +1,88 @@
-mod position;
+//! Provide functional to represent the range of source code.
+//!
+//! # `Span` and `Spannable`
+//!
+//! `Span` is the core of this module. This represent the range of the item in source code.
+//! You can concat several `Span` with `+`, or appending `Span`s to a `Span` using `+=`.
+//!
+//! `Spannable` is a trait to generalize the span of item.
+//! For example, if a struct hold two spannable item, then with `Spannable`, you can get
+//! the span of the struct by calling `span()`.
+//!
+//! ```
+//! struct TwoSpan {
+//!     one: One,
+//!     two: Two,
+//! }
+//!
+//! impl Spannable for TwoSpan {
+//!     fn span(&self) -> Span {
+//!         self.one.span + self.two.span
+//!     }
+//! }
+//!
+//! struct One {
+//!     span: Span
+//! }
+//!
+//! struct Two {
+//!     span: Span
+//! }
+//! ```
 
-pub use position::Position;
+use derive_new::new;
 use std::ops::{Add, AddAssign};
 
+/// A trait for the item which has it own span.
+pub trait Spannable {
+    fn span(&self) -> Span;
+}
+
+/// A struct which hold the range of source code where the item come from.
+#[derive(new)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Span {
-    start: Position,
-    end: Position,
+    offset: usize,
+    len: usize
 }
 
 impl Span {
-    pub fn new(start: Position, end: Position) -> Span {
-        Span { start, end }
+    /// Return start position of the item in the source code.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use zephyr_span::Span;
+    /// let span = Span::new(0, 10);
+    /// assert_eq!(span.offset(), 0);
+    /// ```
+    pub fn offset(&self) -> usize {
+        self.offset
+    }
+
+    /// Return the length of the item in the source code.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use zephyr_span::Span;
+    /// let span = Span::new(0, 10);
+    /// assert_eq!(span.offset(), 10);
+    /// ```
+    pub fn len(&self) -> usize {
+        self.len
     }
 }
 
 impl Add for Span {
     type Output = Self;
+
     fn add(self, rhs: Self) -> Self::Output {
-        if self.start <= rhs.start {
-            if self.end <= rhs.end {
-                Span { start: self.start, end: rhs.end }
+        if self.offset <= rhs.offset {
+            if self.offset + self.len < rhs.offset + rhs.len {
+                Self { offset: self.offset, len: rhs.offset - self.offset + rhs.len }
             } else {
-                Span { start: self.start, end: self.end }
+                Self { offset: self.offset, len: self.len }
             }
         } else {
             rhs.add(self)
@@ -38,49 +98,35 @@ impl AddAssign for Span {
 
 #[cfg(test)]
 mod test {
-    use crate::{Span, position::Position};
+    use crate::Span;
 
     #[test]
     fn has_distance() {
-        let l = Span::new(Position::new(0, 0),  Position::new(1, 2));
-        let r = Span::new(Position::new(2, 10), Position::new(3, 5));
-        assert_eq!(
-            Span::new(Position::new(0, 0), Position::new(3, 5)),
-            l + r
-        );
-        assert_eq!(
-            Span::new(Position::new(0, 0), Position::new(3, 5)),
-            r + l
-        );
+        let l = Span::new(0, 3);
+        let r = Span::new(5, 3);
+        assert_eq!(Span::new(0, 8), l + r);
+        assert_eq!(Span::new(0, 8), r + l);
     }
 
     #[test]
     fn crossing() {
-        let l = Span::new(Position::new(0, 0), Position::new(3, 4));
-        let r = Span::new(Position::new(3, 0), Position::new(4, 8));
-        assert_eq!(
-            Span::new(Position::new(0, 0), Position::new(4, 8)),
-            l + r
-        );
-        assert_eq!(
-            Span::new(Position::new(0, 0), Position::new(4, 8)),
-            r + l
-        );
+        let l = Span::new(0, 6);
+        let r = Span::new(5, 3);
+        assert_eq!(Span::new(0, 8), l + r);
+        assert_eq!(Span::new(0, 8), r + l);
     }
 
     #[test]
     fn contain() {
-        let l = Span::new(Position::new(0, 0), Position::new(10, 5));
-        let r = Span::new(Position::new(0, 1), Position::new(10, 4));
-        assert_eq!(l, l + r);
-        assert_eq!(l, r + l);
+        let l = Span::new(0, 10);
+        let r = Span::new(2, 3);
+        assert_eq!(Span::new(0, 10), l + r);
+        assert_eq!(Span::new(0, 10), r + l);
     }
 
     #[test]
     fn same_span() {
-        let l = Span::new(Position::new(0, 0), Position::new(2, 10));
-        let r = Span::new(Position::new(0, 0), Position::new(2, 10));
-        assert_eq!(l, l + r);
-        assert_eq!(l, r + l);
+        let l = Span::new(0, 10);
+        assert_eq!(l, l + l);
     }
 }
