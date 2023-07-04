@@ -14,6 +14,9 @@ impl Token {
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum TokenKind {
+    // Special
+    Unexpected(char),
+
     // Literals
     Identifier(String),
     Integer(IntBase, String),
@@ -109,4 +112,15 @@ pub enum IntBase {
     Octadecimal,
     Decimal,
     Hexadecimal,
+}
+
+impl From<IntBase> for u32 {
+    fn from(value: IntBase) -> Self {
+        match value {
+            IntBase::Binary => 2,
+            IntBase::Octadecimal => 8,
+            IntBase::Decimal => 10,
+            IntBase::Hexadecimal => 16,
+        }
+    }
 }
