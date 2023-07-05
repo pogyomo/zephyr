@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "zephyr",
+    "zephyr-ast",
     "zephyr-lexer",
     "zephyr-span",
     "zephyr-token",
