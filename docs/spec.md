@@ -66,7 +66,7 @@ Below is operators and symbols which the lexer recognize.
 ### keywords
 
 ```
-function return
+function return let
 ```
 
 ### Integer iteral
@@ -94,4 +94,47 @@ You can separate digit with `_`, but end with it is not allowed.
 
 42_ // end with _ is invalid
 _42 // this is identifier, not integer literal
+```
+
+## Declarative item
+
+```
+<declarative> ::= <function_decl>
+```
+
+### Function Declaration
+
+```
+<function_decl> ::= "function" <function_name> "(" <function_args> ")" <function_body>
+<function_name> ::= <identifier>
+<function_args> ::= <function_arg> "," <function_args>
+                  | <function_arg>
+<function_arg>  ::= <identifier>
+<function_body> ::= "{" { <statement> } "}"
+```
+
+## Statement
+
+```
+<statement> ::= <let_stmt>
+              | <expression_stmt>
+              | <return_stmt>
+```
+
+### Let statement
+
+```
+<let_stmt> ::= "let" <identifier> [ "=" <expression> ] ";"
+```
+
+### Expression statement
+
+```
+<expression_stmt> ::= <expression> ";"
+```
+
+### Return statement
+
+```
+<return_stmt> ::= "return" <expression> ";"
 ```
