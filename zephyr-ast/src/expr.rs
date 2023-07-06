@@ -1,6 +1,18 @@
 use derive_new::new;
 use zephyr_span::{Span, Spannable};
 
+macro_rules! impl_from {
+    ($target:ident, $($from:ident),*) => {$(
+        impl From<$from> for $target {
+            fn from(from: $from) -> $target {
+                $target::$from(from)
+            }
+        }
+    )*};
+}
+
+impl_from!(Expression, IdentExpr, IntExpr, UnaryExpr, InfixExpr);
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Expression {
     IdentExpr(IdentExpr),
@@ -20,6 +32,7 @@ impl Spannable for Expression {
     }
 }
 
+#[derive(new)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct IdentExpr {
     span: Span,
@@ -32,6 +45,7 @@ impl Spannable for IdentExpr {
     }
 }
 
+#[derive(new)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct IntExpr {
     span: Span,
@@ -47,7 +61,6 @@ impl Spannable for IntExpr {
 #[derive(new)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct UnaryExpr {
-    span: Span,
     pub expr: Box<Expression>,
     pub op: UnaryOp,
 }
@@ -58,6 +71,7 @@ impl Spannable for UnaryExpr {
     }
 }
 
+#[derive(new)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct UnaryOp {
     span: Span,
@@ -90,6 +104,7 @@ impl Spannable for InfixExpr {
     }
 }
 
+#[derive(new)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct InfixOp {
     span: Span,
