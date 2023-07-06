@@ -63,6 +63,12 @@ Below is operators and symbols which the lexer recognize.
 ( ) [ ] { } : ; , .
 ```
 
+### keywords
+
+```
+function return
+```
+
 ### Integer iteral
 
 An integer is a list of alphabet or numeric. 
