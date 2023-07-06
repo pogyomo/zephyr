@@ -2,6 +2,18 @@ use zephyr_span::{Spannable, Span};
 
 use crate::Expression;
 
+macro_rules! impl_from {
+    ($target:ident, $($from:ident),*) => {$(
+        impl From<$from> for $target {
+            fn from(from: $from) -> $target {
+                $target::$from(from)
+            }
+        }
+    )*};
+}
+
+impl_from!(Statement, ExprStmt, ReturnStmt);
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Statement {
     ExprStmt(ExprStmt),
