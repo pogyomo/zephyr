@@ -16,6 +16,7 @@ impl_from!(Statement, ExprStmt, ReturnStmt);
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Statement {
+    LetStmt(LetStmt),
     ExprStmt(ExprStmt),
     ReturnStmt(ReturnStmt),
 }
@@ -23,9 +24,36 @@ pub enum Statement {
 impl Spannable for Statement {
     fn span(&self) -> zephyr_span::Span {
         match self {
+            Statement::LetStmt(lets) => lets.span(),
             Statement::ExprStmt(expr) => expr.span(),
             Statement::ReturnStmt(ret) => ret.span(),
         }
+    }
+}
+
+/// let name [ = expr ];
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct LetStmt {
+    span: Span,
+    pub name: LetStmtName,
+    pub expr: Option<Expression>,
+}
+
+impl Spannable for LetStmt {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct LetStmtName {
+    span: Span,
+    pub name: String,
+}
+
+impl Spannable for LetStmtName {
+    fn span(&self) -> Span {
+        self.span
     }
 }
 
@@ -33,7 +61,7 @@ impl Spannable for Statement {
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ExprStmt {
     span: Span,
-    expr: Expression,
+    pub expr: Expression,
 }
 
 impl Spannable for ExprStmt {
@@ -46,7 +74,7 @@ impl Spannable for ExprStmt {
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ReturnStmt {
     span: Span,
-    expr: Expression,
+    pub expr: Expression,
 }
 
 impl Spannable for ReturnStmt {
