@@ -138,3 +138,42 @@ _42 // this is identifier, not integer literal
 ```
 <return_stmt> ::= "return" <expression> ";"
 ```
+
+## Expression
+
+```
+<expression> ::= <logical-or-expression>
+<logical-or-expression> ::= <logical-and-expression>
+                          | <logical-and-expression> "||" <logical-and-expression>
+<logical-and-expression> ::= <inclusive-or-expression>
+                           | <inclusive-or-expression> "&&" <inclusive-or-expression>
+<inclusive-or-expression> ::= <exclusive-or-expression>
+                            | <exclusive-or-expression> "|" <exclusive-or-expression>
+<exclusive-or-expression> ::= <and-expression>
+                            | <and-expression> "^" <and-expression>
+<and-expression> ::= <equality-expression>
+                   | <equality-expression> "&" <equality-expression>
+<equality-expression> ::= <relative-expression>
+                        | <relative-expression> "==" <relative-expression>
+                        | <relative-expression> "!=" <relative-expression>
+<relative-expression> ::= <shift-expression>
+                        | <shift-expression> "<" <shift-expression>
+                        | <shift-expression> ">" <shift-expression>
+                        | <shift-expression> "<=" <shift-expression>
+                        | <shift-expression> ">=" <shift-expression>
+<shift-expression> ::= <additive-expression>
+                     | <additive-expression> "<<" <additive-expression>
+                     | <additive-expression> ">>" <additive-expression>
+<additive-expression> ::= <multiplicative-expression>
+                        | <multiplicative-expression> "+" <multiplicative-expression>
+                        | <multiplicative-expression> "-" <multiplicative-expression>
+<multiplicative-expression> ::= <multiplicative-expression>
+                              | <multiplicative-expression> "*" <multiplicative-expression>
+                              | <multiplicative-expression> "/" <multiplicative-expression>
+                              | <multiplicative-expression> "%" <multiplicative-expression>
+<unary-expression> ::= <primary-expression>
+                     | "-" <unary-expression>
+                     | "!" <unary-expression>
+<primary-expression> ::= <identifier>
+                       | <integer_lit>
+```
