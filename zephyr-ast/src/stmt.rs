@@ -1,16 +1,5 @@
 use zephyr_span::{Spannable, Span};
-
-use crate::Expression;
-
-macro_rules! impl_from {
-    ($target:ident, $($from:ident),*) => {$(
-        impl From<$from> for $target {
-            fn from(from: $from) -> $target {
-                $target::$from(from)
-            }
-        }
-    )*};
-}
+use crate::{Expression, impl_from};
 
 impl_from!(Statement, ExprStmt, ReturnStmt);
 

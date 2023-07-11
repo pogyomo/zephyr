@@ -1,16 +1,7 @@
 use derive_new::new;
 use zephyr_span::{Span, Spannable};
 use crate::Statement;
-
-macro_rules! impl_from {
-    ($target:ident, $($from:ident),*) => {$(
-        impl From<$from> for $target {
-            fn from(from: $from) -> $target {
-                $target::$from(from)
-            }
-        }
-    )*};
-}
+use crate::impl_from;
 
 impl_from!(Declarative, FunctionDecl);
 
