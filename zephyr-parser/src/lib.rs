@@ -40,6 +40,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
 
         let mut decls = Vec::new();
         while self.curr.is_some() {
+            println!("{:#?}", self.curr);
             decls.push(self.parse_decl()?);
         }
         Ok(decls)
@@ -127,6 +128,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
                 TokenKind::RCurly => {
                     body_span += token.span;
                     span += token.span;
+                    self.consume();
                     break;
                 }
                 _ => (),
