@@ -2,8 +2,8 @@ use zephyr_span::Span;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Token {
-    span: Span,
-    kind: TokenKind,
+    pub span: Span,
+    pub kind: TokenKind,
 }
 
 impl Token {
@@ -104,6 +104,14 @@ pub enum TokenKind {
     Comma,
     /// "."
     Period,
+
+    // Keywords
+    /// "function"
+    Function,
+    /// "return"
+    Return,
+    /// "let"
+    Let,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]

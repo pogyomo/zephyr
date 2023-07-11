@@ -221,10 +221,13 @@ impl<'a> Iterator for Lexer<'a> {
             }
             ch if ch.is_ascii_alphabetic() || ch == '_' => {
                 let ident = self.consume_identifier(Some(ch));
-                Some(Token::new(
-                    Span::new(start, self.offset() - start),
-                    TokenKind::Identifier(ident)
-                ))
+                let kind = match ident.as_str() {
+                    "function" => TokenKind::Function,
+                    "return" => TokenKind::Return,
+                    "let" => TokenKind::Let,
+                    _ => TokenKind::Identifier(ident),
+                };
+                Some(Token::new(Span::new(start, self.offset() - start), kind))
             }
             ch => Some(Token::new(Span::new(start, self.offset() - start), TokenKind::Unexpected(ch))),
         }
@@ -314,5 +317,16 @@ mod test {
             Token::new(Span::new(16, 1), TokenKind::Comma),
             Token::new(Span::new(18, 1), TokenKind::Period),
         ]);
+    }
+
+    #[test]
+    fn keyword() {
+        let input = "function return let";
+        let tokens = Lexer::new(input).collect::<Vec<_>>();
+        assert_eq!(tokens, vec![
+            Token::new(Span::new(0, 8),  TokenKind::Function),
+            Token::new(Span::new(9, 6),  TokenKind::Return),
+            Token::new(Span::new(16, 3), TokenKind::Let),
+        ])
     }
 }
