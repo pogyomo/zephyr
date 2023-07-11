@@ -3,6 +3,7 @@ members = [
     "zephyr",
     "zephyr-ast",
     "zephyr-lexer",
+    "zephyr-parser",
     "zephyr-span",
     "zephyr-token",
 ]

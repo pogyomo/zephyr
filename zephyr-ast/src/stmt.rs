@@ -1,7 +1,8 @@
+use derive_new::new;
 use zephyr_span::{Spannable, Span};
 use crate::{Expression, impl_from};
 
-impl_from!(Statement, ExprStmt, ReturnStmt);
+impl_from!(Statement, LetStmt, ExprStmt, ReturnStmt);
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Statement {
@@ -21,6 +22,7 @@ impl Spannable for Statement {
 }
 
 /// let name [ = expr ];
+#[derive(new)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct LetStmt {
     span: Span,
@@ -34,6 +36,7 @@ impl Spannable for LetStmt {
     }
 }
 
+#[derive(new)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct LetStmtName {
     span: Span,
@@ -47,6 +50,7 @@ impl Spannable for LetStmtName {
 }
 
 /// expr;
+#[derive(new)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ExprStmt {
     span: Span,
@@ -59,11 +63,12 @@ impl Spannable for ExprStmt {
     }
 }
 
-/// return expr;
+/// return [ expr ];
+#[derive(new)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ReturnStmt {
     span: Span,
-    pub expr: Expression,
+    pub expr: Option<Expression>,
 }
 
 impl Spannable for ReturnStmt {

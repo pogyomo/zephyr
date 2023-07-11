@@ -2,7 +2,7 @@ use derive_new::new;
 use zephyr_span::{Span, Spannable};
 use crate::impl_from;
 
-impl_from!(Expression, IdentExpr, IntExpr, UnaryExpr, InfixExpr);
+impl_from!(Expression, IdentExpr, IntExpr, UnaryExpr, InfixExpr, FuncCallExpr);
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Expression {
@@ -78,11 +78,16 @@ impl Spannable for FuncCallExprName {
     }
 }
 
-#[derive(new)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct UnaryExpr {
     pub expr: Box<Expression>,
     pub op: UnaryOp,
+}
+
+impl UnaryExpr {
+    pub fn new(expr: Expression, op: UnaryOp) -> Self {
+        Self { expr: Box::new(expr), op }
+    }
 }
 
 impl Spannable for UnaryExpr {
@@ -110,12 +115,17 @@ pub enum UnaryOpKind {
     Minus,
 }
 
-#[derive(new)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct InfixExpr {
     pub lhs: Box<Expression>,
     pub rhs: Box<Expression>,
     pub op: InfixOp,
+}
+
+impl InfixExpr {
+    pub fn new(lhs: Expression, rhs: Expression, op: InfixOp) -> Self {
+        Self { lhs: Box::new(lhs), rhs: Box::new(rhs), op }
+    }
 }
 
 impl Spannable for InfixExpr {

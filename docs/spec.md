@@ -6,10 +6,10 @@
 
 ```
 <alphabet>          ::= "a" .. "z" | "A" .. "Z"
-<binary_digit>      ::= "0" | "1"
-<octadecimal_digit> ::= "0" .. "7"
-<decimal_digit>     ::= "0" .. "9"
-<hexadecimal_digit> ::= "0" .. "9" | "a" .. "f" | "A" .. "F"
+<binary-digit>      ::= "0" | "1"
+<octadecimal-digit> ::= "0" .. "7"
+<decimal-digit>     ::= "0" .. "9"
+<hexadecimal-digit> ::= "0" .. "9" | "a" .. "f" | "A" .. "F"
 ```
 
 ## Lexical items
@@ -37,9 +37,9 @@ An identifier contain ascii character, underline and number. Start with number i
 allowed on this specification.
 
 ```
-<identifier>      ::= <identifier_head> { <identifier_rest> }
-<identifier_head> ::= <alphabet> | "_"
-<identifier_rest> ::= <alphabet> | "_" | <decimal_digit>
+<identifier>      ::= <identifier-head> { <identifier-rest> }
+<identifier-head> ::= <alphabet> | "_"
+<identifier-rest> ::= <alphabet> | "_" | <decimal-digit>
 ```
 
 ```
@@ -75,15 +75,15 @@ An integer is a list of alphabet or numeric.
 You can separate digit with `_`, but end with it is not allowed.
 
 ```
-<integer_lit>     ::= <binary_lit> | <decimal_lit> | <octadecimal_lit> | <hexadecimal_lit>
-<binary_lit>      ::= "0" ( "b" | "B" ) <binary_digits>
-<decimal_lit>     ::= "0" | <decimal_digits>
-<octadecimal_lit> ::= "0" ( "o" | "O" ) <octadecimal_digits>
-<hexadecimal_lit> ::= "0" ( "x" | "X" ) <hexadecimal_digits>
-<binary_digits>       ::= <binary_digit> { [ "_" ] <binary_digit> }
-<decimal_digits>      ::= <decimal_digit> { [ "_" ] <decimal_digit> }
-<octadecimal_digits>  ::= <octadecimal_digit> { [ "_" ] <octadecimal_digit> }
-<hexadecimal_digits>  ::= <hexadecimal_digit> { [ "_" ] <hexadecimal_digit> }
+<integer-lit>     ::= <binary-lit> | <decimal-lit> | <octadecimal-lit> | <hexadecimal-lit>
+<binary-lit>      ::= "0" ( "b" | "B" ) <binary-digits>
+<decimal-lit>     ::= "0" | <decimal-digits>
+<octadecimal-lit> ::= "0" ( "o" | "O" ) <octadecimal-digits>
+<hexadecimal-lit> ::= "0" ( "x" | "X" ) <hexadecimal-digits>
+<binary-digits>       ::= <binary-digit> { [ "_" ] <binary-digit> }
+<decimal-digits>      ::= <decimal-digit> { [ "_" ] <decimal-digit> }
+<octadecimal-digits>  ::= <octadecimal-digit> { [ "_" ] <octadecimal-digit> }
+<hexadecimal-digits>  ::= <hexadecimal-digit> { [ "_" ] <hexadecimal-digit> }
 ```
 
 ```
@@ -99,44 +99,44 @@ _42 // this is identifier, not integer literal
 ## Declarative item
 
 ```
-<declarative> ::= <function_decl>
+<declarative> ::= <function-decl>
 ```
 
 ### Function Declaration
 
 ```
-<function_decl> ::= "function" <function_name> "(" <function_args> ")" <function_body>
-<function_name> ::= <identifier>
-<function_args> ::= <function_arg> "," <function_args>
-                  | <function_arg>
-<function_arg>  ::= <identifier>
-<function_body> ::= "{" { <statement> } "}"
+<function-decl> ::= "function" <function-name> "(" [ <function-args> ] ")" <function-body>
+<function-name> ::= <identifier>
+<function-args> ::= <function-arg> "," <function-args>
+                  | <function-arg>
+<function-arg>  ::= <identifier>
+<function-body> ::= "{" { <statement> } "}"
 ```
 
 ## Statement
 
 ```
-<statement> ::= <let_stmt>
-              | <expression_stmt>
-              | <return_stmt>
+<statement> ::= <let-stmt>
+              | <expression-stmt>
+              | <return-stmt>
 ```
 
 ### Let statement
 
 ```
-<let_stmt> ::= "let" <identifier> [ "=" <expression> ] ";"
+<let-stmt> ::= "let" <identifier> [ "=" <expression> ] ";"
 ```
 
 ### Expression statement
 
 ```
-<expression_stmt> ::= <expression> ";"
+<expression-stmt> ::= <expression> ";"
 ```
 
 ### Return statement
 
 ```
-<return_stmt> ::= "return" <expression> ";"
+<return-stmt> ::= "return" [ <expression> ] ";"
 ```
 
 ## Expression
@@ -173,7 +173,10 @@ _42 // this is identifier, not integer literal
                               | <multiplicative-expression> "%" <multiplicative-expression>
 <unary-expression> ::= <primary-expression>
                      | "-" <unary-expression>
-                     | "!" <unary-expression>
 <primary-expression> ::= <identifier>
-                       | <integer_lit>
+                       | <integer-lit>
+                       | <function-call-expression>
+<function-call-expression> ::= <identifier> "(" [ <function-call-expression-args> ] ")"
+<function-call-expression-args> ::= <expression>
+                                  | <expression> "," <expression>
 ```
