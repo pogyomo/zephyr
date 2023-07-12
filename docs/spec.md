@@ -176,6 +176,7 @@ _42 // this is identifier, not integer literal
 <primary-expression> ::= <identifier>
                        | <integer-lit>
                        | <function-call-expression>
+                       | "(" <expression> ")"
 <function-call-expression> ::= <identifier> "(" [ <function-call-expression-args> ] ")"
 <function-call-expression-args> ::= <expression>
                                   | <expression> "," <expression>

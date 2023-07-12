@@ -2,10 +2,11 @@ use derive_new::new;
 use zephyr_span::{Span, Spannable};
 use crate::impl_from;
 
-impl_from!(Expression, IdentExpr, IntExpr, UnaryExpr, InfixExpr, FuncCallExpr);
+impl_from!(Expression, SurrExpr, IdentExpr, IntExpr, UnaryExpr, InfixExpr, FuncCallExpr);
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Expression {
+    SurrExpr(SurrExpr),
     IdentExpr(IdentExpr),
     IntExpr(IntExpr),
     FuncCallExpr(FuncCallExpr),
@@ -16,12 +17,32 @@ pub enum Expression {
 impl Spannable for Expression {
     fn span(&self) -> Span {
         match self {
+            Expression::SurrExpr(surr) => surr.span(),
             Expression::IdentExpr(ident) => ident.span(),
             Expression::IntExpr(int) => int.span(),
             Expression::FuncCallExpr(call) => call.span(),
             Expression::UnaryExpr(unary) => unary.span(),
             Expression::InfixExpr(infix) => infix.span(),
         }
+    }
+}
+
+/// A expression which be surrounded by `(` and `)`
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct SurrExpr {
+    span: Span,
+    pub expr: Box<Expression>,
+}
+
+impl SurrExpr {
+    pub fn new(span: Span, expr: Expression) -> Self {
+        Self { span, expr: Box::new(expr) }
+    }
+}
+
+impl Spannable for SurrExpr {
+    fn span(&self) -> Span {
+        self.span
     }
 }
 

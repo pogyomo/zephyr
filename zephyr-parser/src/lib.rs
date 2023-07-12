@@ -3,7 +3,7 @@ use thiserror::Error;
 use zephyr_ast::{
     Expression, Declarative, Statement, InfixExpr, InfixOp, InfixOpKind, UnaryExpr, UnaryOp, UnaryOpKind,
     IntExpr, IdentExpr, FuncCallExpr, FuncCallExprName, LetStmt, ReturnStmt, ExprStmt, LetStmtName, 
-    FunctionDecl, FunctionDeclName, FunctionDeclArg, FunctionDeclBody
+    FunctionDecl, FunctionDeclName, FunctionDeclArg, FunctionDeclBody, SurrExpr
 };
 use zephyr_span::{Span, Spannable};
 use zephyr_token::{Token, TokenKind};
@@ -467,11 +467,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
     }
 
     fn parse_primary_expr(&mut self) -> Result<Expression, ParseError> {
-        let Some(token) = self.consume() else {
-            return Err(ParseError::ExpectedToken {
-                span: self.last_span, expect: "identifier or integer"
-            });
-        };
+        let token = self.consume_or_err("identifier or integer")?;
         match token.kind {
             TokenKind::Identifier(name) => self.parse_func_call(name, token.span),
             TokenKind::Integer(base, body) => {
@@ -480,6 +476,20 @@ impl<I: Iterator<Item = Token>> Parser<I> {
                     Ok(value) => Ok(IntExpr::new(token.span, value).into()),
                     Err(e) => Err(ParseError::FailedToParseInteger {
                         span: token.span, reason: e
+                    })
+                }
+            }
+            TokenKind::LParen => {
+                let mut span = token.span;
+                let expr = self.parse_expr()?;
+                let token = self.consume_or_err(")")?;
+                match token.kind {
+                    TokenKind::RParen => {
+                        span += token.span;
+                        Ok(SurrExpr::new(span, expr).into())
+                    }
+                    _ => Err(ParseError::UnexpectedToken {
+                        span: token.span, expect: ")"
                     })
                 }
             }
