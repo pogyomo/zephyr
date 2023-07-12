@@ -102,7 +102,7 @@ _42 // this is identifier, not integer literal
 <types> ::= "u8"
           | "i8"
           | <pointer>
-<pointer> ::= "&" <types>
+<pointer> ::= "*" <types>
 ```
 
 ## Declarative item

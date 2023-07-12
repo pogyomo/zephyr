@@ -59,9 +59,9 @@ impl<I: Iterator<Item = Token>> Parser<I> {
 
 impl<I: Iterator<Item = Token>> Parser<I> {
     fn parse_type(&mut self) -> Result<(Types, Span), ParseError> {
-        let token = self.consume_or_err("&, u8 or i8")?;
+        let token = self.consume_or_err("*, u8 or i8")?;
         match token.kind {
-            TokenKind::BitAnd => {
+            TokenKind::Star => {
                 let (types, span) = self.parse_type()?;
                 Ok((
                     Types::Pointer(Box::new(types)),
@@ -75,7 +75,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
                 Ok((Types::I8, token.span))
             }
             _ => Err(ParseError::UnexpectedToken {
-                span: token.span, expect: "&, u8 or i8"
+                span: token.span, expect: "*, u8 or i8"
             })
         }
     }
