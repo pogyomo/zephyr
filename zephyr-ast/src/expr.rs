@@ -206,4 +206,6 @@ pub enum InfixOpKind {
     EQ,
     /// "!="
     NE,
+    /// "."
+    Dot,
 }

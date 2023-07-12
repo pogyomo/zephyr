@@ -115,7 +115,7 @@ _42 // this is identifier, not integer literal
 ### Function Declaration
 
 ```
-<function-decl> ::= "function" <function-name> "(" [ <function-args> ] ")" <function-body>
+<function-decl> ::= "function" <function-name> "(" [ <function-args> ] ")" [ ":" <types> ] <function-body>
 <function-name> ::= <identifier>
 <function-args> ::= <function-arg> "," <function-args>
                   | <function-arg>
@@ -186,35 +186,37 @@ union Hoge {
 ```
 <expression> ::= <logical-or-expression>
 <logical-or-expression> ::= <logical-and-expression>
-                          | <logical-and-expression> "||" <logical-and-expression>
+                          | <logical-and-expression> "||" <logical-or-expression>
 <logical-and-expression> ::= <inclusive-or-expression>
-                           | <inclusive-or-expression> "&&" <inclusive-or-expression>
+                           | <inclusive-or-expression> "&&" <logical-and-expression>
 <inclusive-or-expression> ::= <exclusive-or-expression>
-                            | <exclusive-or-expression> "|" <exclusive-or-expression>
+                            | <exclusive-or-expression> "|" <inclusive-or-expression>
 <exclusive-or-expression> ::= <and-expression>
-                            | <and-expression> "^" <and-expression>
+                            | <and-expression> "^" <exclusive-or-expression>
 <and-expression> ::= <equality-expression>
-                   | <equality-expression> "&" <equality-expression>
+                   | <equality-expression> "&" <and-expression>
 <equality-expression> ::= <relative-expression>
-                        | <relative-expression> "==" <relative-expression>
-                        | <relative-expression> "!=" <relative-expression>
+                        | <relative-expression> "==" <equality-expression>
+                        | <relative-expression> "!=" <equality-expression>
 <relative-expression> ::= <shift-expression>
-                        | <shift-expression> "<" <shift-expression>
-                        | <shift-expression> ">" <shift-expression>
-                        | <shift-expression> "<=" <shift-expression>
-                        | <shift-expression> ">=" <shift-expression>
+                        | <shift-expression> "<" <relative-expression>
+                        | <shift-expression> ">" <relative-expression>
+                        | <shift-expression> "<=" <relative-expression>
+                        | <shift-expression> ">=" <relative-expression>
 <shift-expression> ::= <additive-expression>
-                     | <additive-expression> "<<" <additive-expression>
-                     | <additive-expression> ">>" <additive-expression>
+                     | <additive-expression> "<<" <shift-expression>
+                     | <additive-expression> ">>" <shift-expression>
 <additive-expression> ::= <multiplicative-expression>
-                        | <multiplicative-expression> "+" <multiplicative-expression>
-                        | <multiplicative-expression> "-" <multiplicative-expression>
-<multiplicative-expression> ::= <multiplicative-expression>
-                              | <multiplicative-expression> "*" <multiplicative-expression>
-                              | <multiplicative-expression> "/" <multiplicative-expression>
-                              | <multiplicative-expression> "%" <multiplicative-expression>
-<unary-expression> ::= <primary-expression>
+                        | <multiplicative-expression> "+" <additive-expression>
+                        | <multiplicative-expression> "-" <additive-expression>
+<multiplicative-expression> ::= <unary-expression>
+                              | <unary-expression> "*" <multiplicative-expression>
+                              | <unary-expression> "/" <multiplicative-expression>
+                              | <unary-expression> "%" <multiplicative-expression>
+<unary-expression> ::= <dotaccess-expression>
                      | "-" <unary-expression>
+<dotaccess-expression> ::= <primary-expression>
+                         | <primary-expression> "." <dotaccess-expression>
 <primary-expression> ::= <identifier>
                        | <integer-lit>
                        | <function-call-expression>

@@ -3,7 +3,8 @@ use thiserror::Error;
 use zephyr_ast::{
     Expression, Declarative, Statement, InfixExpr, InfixOp, InfixOpKind, UnaryExpr, UnaryOp, UnaryOpKind,
     IntExpr, IdentExpr, FuncCallExpr, FuncCallExprName, LetStmt, ReturnStmt, ExprStmt, LetStmtName, 
-    FunctionDecl, FunctionDeclName, FunctionDeclArg, FunctionDeclBody, SurrExpr, LetStmtType, StructDecl, UnionDecl, StructDeclField, StructDeclName, UnionDeclField, UnionDeclName
+    FunctionDecl, FunctionDeclName, FunctionDeclArg, FunctionDeclBody, SurrExpr, LetStmtType, StructDecl, 
+    UnionDecl, StructDeclField, StructDeclName, UnionDeclField, UnionDeclName, FunctionDeclRetType
 };
 use zephyr_span::{Span, Spannable};
 use zephyr_token::{Token, TokenKind};
@@ -73,6 +74,9 @@ impl<I: Iterator<Item = Token>> Parser<I> {
             }
             TokenKind::I8 => {
                 Ok((Types::I8, token.span))
+            }
+            TokenKind::Identifier(name) => {
+                Ok((Types::TypeName(name), token.span))
             }
             _ => Err(ParseError::UnexpectedToken {
                 span: token.span, expect: "*, u8 or i8"
@@ -157,6 +161,16 @@ impl<I: Iterator<Item = Token>> Parser<I> {
             }
         }
 
+        let token = self.peek_or_err(":")?;
+        let ret_type = match token.kind {
+            TokenKind::Colon => {
+                self.consume();
+                let (types, type_span) = self.parse_type()?;
+                Some(FunctionDeclRetType::new(type_span, types))
+            }
+            _ => None,
+        };
+
         let token = self.consume_or_err("{")?;
         let mut body_span = token.span;
         match token.kind {
@@ -185,7 +199,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
             body.push(stmt);
         }
 
-        Ok(FunctionDecl::new(span, name, args, FunctionDeclBody::new(body_span, body)))
+        Ok(FunctionDecl::new(span, name, args, ret_type, FunctionDeclBody::new(body_span, body)))
     }
 
     fn parse_struct_decl(&mut self) -> Result<StructDecl, ParseError> {
@@ -644,11 +658,27 @@ impl<I: Iterator<Item = Token>> Parser<I> {
                     let expr = self.parse_unary_expr()?;
                     Ok(UnaryExpr::new(expr, UnaryOp::new(span, UnaryOpKind::Minus)).into())
                 }
-                _ => self.parse_primary_expr(),
+                _ => self.parse_dotaccess_expr(),
             }
         } else {
-            self.parse_primary_expr()
+            self.parse_dotaccess_expr()
         }
+    }
+
+    fn parse_dotaccess_expr(&mut self) -> Result<Expression, ParseError> {
+        let mut lhs = self.parse_primary_expr()?;
+        while let Some(token) = self.peek() {
+            match token.kind {
+                TokenKind::Period => {
+                    let span = token.span;
+                    self.consume();
+                    let rhs = self.parse_primary_expr()?;
+                    lhs = InfixExpr::new(lhs, rhs, InfixOp::new(span, InfixOpKind::Dot)).into();
+                }
+                _ => break,
+            }
+        }
+        Ok(lhs)
     }
 
     fn parse_primary_expr(&mut self) -> Result<Expression, ParseError> {
@@ -790,6 +820,7 @@ mod test {
             Span::new(0, 8) + Span::new(60, 1),
             FunctionDeclName::new(Span::new(9, 4), "main".to_string()),
             Vec::new(),
+            None,
             FunctionDeclBody::new(
                 Span::new(16, 1) + Span::new(60, 1),
                 vec![

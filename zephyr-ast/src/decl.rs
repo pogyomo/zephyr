@@ -30,6 +30,7 @@ pub struct FunctionDecl {
     span: Span,
     pub name: FunctionDeclName,
     pub args: Vec<FunctionDeclArg>,
+    pub ret_type: Option<FunctionDeclRetType>,
     pub body: FunctionDeclBody,
 }
 
@@ -62,6 +63,19 @@ pub struct FunctionDeclArg {
 }
 
 impl Spannable for FunctionDeclArg {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+#[derive(new)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct FunctionDeclRetType {
+    span: Span,
+    pub r#type: Types,
+}
+
+impl Spannable for FunctionDeclRetType {
     fn span(&self) -> Span {
         self.span
     }
