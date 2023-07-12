@@ -6,4 +6,5 @@ members = [
     "zephyr-parser",
     "zephyr-span",
     "zephyr-token",
+    "zephyr-types",
 ]

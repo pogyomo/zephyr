@@ -8,3 +8,4 @@ thiserror = "1.0.43"
 zephyr-ast = { path = "../zephyr-ast" }
 zephyr-span = { path = "../zephyr-span" }
 zephyr-token = { path = "../zephyr-token" }
+zephyr-types = { path = "../zephyr-types" }

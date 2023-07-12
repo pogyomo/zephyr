@@ -84,6 +84,7 @@ name = "zephyr"
 version = "0.1.0"
 dependencies = [
  "zephyr-lexer",
+ "zephyr-parser",
 ]
 
 [[package]]
@@ -92,6 +93,7 @@ version = "0.1.0"
 dependencies = [
  "derive-new",
  "zephyr-span",
+ "zephyr-types",
 ]
 
 [[package]]
@@ -110,6 +112,7 @@ dependencies = [
  "zephyr-ast",
  "zephyr-span",
  "zephyr-token",
+ "zephyr-types",
 ]
 
 [[package]]
@@ -125,3 +128,7 @@ version = "0.1.0"
 dependencies = [
  "zephyr-span",
 ]
+
+[[package]]
+name = "zephyr-types"
+version = "0.1.0"

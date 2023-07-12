@@ -112,6 +112,10 @@ pub enum TokenKind {
     Return,
     /// "let"
     Let,
+    /// "u8"
+    U8,
+    /// "i8"
+    I8,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]

@@ -1,5 +1,6 @@
 use derive_new::new;
 use zephyr_span::{Span, Spannable};
+use zephyr_types::Types;
 use crate::Statement;
 use crate::impl_from;
 
@@ -39,11 +40,13 @@ impl Spannable for FunctionDeclName {
     }
 }
 
+/// name: type
 #[derive(new)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct FunctionDeclArg {
     span: Span,
     pub name: String,
+    pub r#type: Types,
 }
 
 impl Spannable for FunctionDeclArg {

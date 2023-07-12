@@ -1,5 +1,6 @@
 use derive_new::new;
 use zephyr_span::{Spannable, Span};
+use zephyr_types::Types;
 use crate::{Expression, impl_from};
 
 impl_from!(Statement, LetStmt, ExprStmt, ReturnStmt);
@@ -27,6 +28,7 @@ impl Spannable for Statement {
 pub struct LetStmt {
     span: Span,
     pub name: LetStmtName,
+    pub r#type: LetStmtType,
     pub expr: Option<Expression>,
 }
 
@@ -44,6 +46,19 @@ pub struct LetStmtName {
 }
 
 impl Spannable for LetStmtName {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+#[derive(new)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct LetStmtType {
+    span: Span,
+    pub r#type: Types,
+}
+
+impl Spannable for LetStmtType {
     fn span(&self) -> Span {
         self.span
     }

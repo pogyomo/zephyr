@@ -225,6 +225,8 @@ impl<'a> Iterator for Lexer<'a> {
                     "function" => TokenKind::Function,
                     "return" => TokenKind::Return,
                     "let" => TokenKind::Let,
+                    "u8" => TokenKind::U8,
+                    "i8" => TokenKind::I8,
                     _ => TokenKind::Identifier(ident),
                 };
                 Some(Token::new(Span::new(start, self.offset() - start), kind))
@@ -321,12 +323,14 @@ mod test {
 
     #[test]
     fn keyword() {
-        let input = "function return let";
+        let input = "function return let u8 i8";
         let tokens = Lexer::new(input).collect::<Vec<_>>();
         assert_eq!(tokens, vec![
             Token::new(Span::new(0, 8),  TokenKind::Function),
             Token::new(Span::new(9, 6),  TokenKind::Return),
             Token::new(Span::new(16, 3), TokenKind::Let),
+            Token::new(Span::new(20, 2), TokenKind::U8),
+            Token::new(Span::new(23, 2), TokenKind::I8),
         ])
     }
 }

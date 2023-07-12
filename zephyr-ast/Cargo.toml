@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 derive-new = "0.5.9"
 zephyr-span = { path = "../zephyr-span" }
+zephyr-types = { path = "../zephyr-types" }

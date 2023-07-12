@@ -96,6 +96,15 @@ You can separate digit with `_`, but end with it is not allowed.
 _42 // this is identifier, not integer literal
 ```
 
+### Types
+
+```
+<types> ::= "u8"
+          | "i8"
+          | <pointer>
+<pointer> ::= "&" <types>
+```
+
 ## Declarative item
 
 ```
@@ -109,7 +118,7 @@ _42 // this is identifier, not integer literal
 <function-name> ::= <identifier>
 <function-args> ::= <function-arg> "," <function-args>
                   | <function-arg>
-<function-arg>  ::= <identifier>
+<function-arg>  ::= <identifier> ":" <types>
 <function-body> ::= "{" { <statement> } "}"
 ```
 
@@ -124,7 +133,7 @@ _42 // this is identifier, not integer literal
 ### Let statement
 
 ```
-<let-stmt> ::= "let" <identifier> [ "=" <expression> ] ";"
+<let-stmt> ::= "let" <identifier> ":" <types> [ "=" <expression> ] ";"
 ```
 
 ### Expression statement

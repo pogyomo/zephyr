@@ -3,10 +3,11 @@ use thiserror::Error;
 use zephyr_ast::{
     Expression, Declarative, Statement, InfixExpr, InfixOp, InfixOpKind, UnaryExpr, UnaryOp, UnaryOpKind,
     IntExpr, IdentExpr, FuncCallExpr, FuncCallExprName, LetStmt, ReturnStmt, ExprStmt, LetStmtName, 
-    FunctionDecl, FunctionDeclName, FunctionDeclArg, FunctionDeclBody, SurrExpr
+    FunctionDecl, FunctionDeclName, FunctionDeclArg, FunctionDeclBody, SurrExpr, LetStmtType
 };
 use zephyr_span::{Span, Spannable};
 use zephyr_token::{Token, TokenKind};
+use zephyr_types::Types;
 
 #[derive(Debug, Error)]
 pub enum ParseError {
@@ -57,6 +58,30 @@ impl<I: Iterator<Item = Token>> Parser<I> {
 }
 
 impl<I: Iterator<Item = Token>> Parser<I> {
+    fn parse_type(&mut self) -> Result<(Types, Span), ParseError> {
+        let token = self.consume_or_err("&, u8 or i8")?;
+        match token.kind {
+            TokenKind::BitAnd => {
+                let (types, span) = self.parse_type()?;
+                Ok((
+                    Types::Pointer(Box::new(types)),
+                    span,
+                ))
+            }
+            TokenKind::U8 => {
+                Ok((Types::U8, token.span))
+            }
+            TokenKind::I8 => {
+                Ok((Types::I8, token.span))
+            }
+            _ => Err(ParseError::UnexpectedToken {
+                span: token.span, expect: "&, u8 or i8"
+            })
+        }
+    }
+}
+
+impl<I: Iterator<Item = Token>> Parser<I> {
     fn parse_decl(&mut self) -> Result<Declarative, ParseError> {
         let token = self.peek_or_err("function")?;
         match token.kind {
@@ -95,7 +120,18 @@ impl<I: Iterator<Item = Token>> Parser<I> {
             match token.kind {
                 TokenKind::Identifier(name) => {
                     span += token.span;
-                    args.push(FunctionDeclArg::new(token.span, name));
+
+                    let token = self.consume_or_err(":")?;
+                    match token.kind {
+                        TokenKind::Colon => span += token.span,
+                        _ => return Err(ParseError::UnexpectedToken {
+                            span: token.span, expect: ":"
+                        })
+                    }
+
+                    let (types, type_span) = self.parse_type()?;
+                    args.push(FunctionDeclArg::new(type_span, name, types));
+                    span += type_span;
                 }
                 TokenKind::RParen => {
                     span += token.span;
@@ -175,6 +211,13 @@ impl<I: Iterator<Item = Token>> Parser<I> {
             })
         };
 
+        let token = self.consume_or_err(":")?;
+        span += token.span;
+
+        let (types, type_span) = self.parse_type()?;
+        let types = LetStmtType::new(type_span, types);
+        span += type_span;
+
         let token = self.consume_or_err("; or =")?;
         match token.kind {
             TokenKind::Assign => {
@@ -182,7 +225,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
             }
             TokenKind::Semicolon => {
                 span += token.span;
-                return Ok(LetStmt::new(span, name, None));
+                return Ok(LetStmt::new(span, name, types, None));
             }
             _ => return Err(ParseError::UnexpectedToken {
                 span: token.span, expect: "; or ="
@@ -196,7 +239,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
         match token.kind {
             TokenKind::Semicolon => {
                 span += token.span;
-                Ok(LetStmt::new(span, name, Some(expr)))
+                Ok(LetStmt::new(span, name, types, Some(expr)))
             }
             _ => Err(ParseError::UnexpectedToken {
                 span: token.span, expect: ";"
@@ -573,15 +616,16 @@ impl<I: Iterator<Item = Token>> Parser<I> {
 mod test {
     use zephyr_ast::{
         FunctionDecl, FunctionDeclName, FunctionDeclBody, LetStmt, LetStmtName, IntExpr, ReturnStmt,
-        InfixExpr, IdentExpr, InfixOp, InfixOpKind, SurrExpr
+        InfixExpr, IdentExpr, InfixOp, InfixOpKind, SurrExpr, LetStmtType
     };
     use zephyr_span::Span;
     use zephyr_token::{Token, TokenKind, IntBase};
+    use zephyr_types::Types;
     use crate::Parser;
 
     #[test]
     fn function() {
-        // function main() { let a = 10 * (2 << 3); return a % 10; }
+        // function main() { let a: u8 = 10 * (2 << 3); return a % 10; }
         let input = vec![
             Token::new(Span::new(0, 8),  TokenKind::Function),
             Token::new(Span::new(9, 4),  TokenKind::Identifier("main".to_string())),
@@ -590,53 +634,56 @@ mod test {
             Token::new(Span::new(16, 1), TokenKind::LCurly),
             Token::new(Span::new(18, 3), TokenKind::Let),
             Token::new(Span::new(22, 1), TokenKind::Identifier("a".to_string())),
-            Token::new(Span::new(24, 1), TokenKind::Assign),
-            Token::new(Span::new(26, 2), TokenKind::Integer(IntBase::Decimal, "10".to_string())),
-            Token::new(Span::new(29, 1), TokenKind::Star),
-            Token::new(Span::new(31, 1), TokenKind::LParen),
-            Token::new(Span::new(32, 1), TokenKind::Integer(IntBase::Decimal, "2".to_string())),
-            Token::new(Span::new(34, 2), TokenKind::LShift),
-            Token::new(Span::new(37, 1), TokenKind::Integer(IntBase::Decimal, "3".to_string())),
-            Token::new(Span::new(38, 1), TokenKind::RParen),
-            Token::new(Span::new(39, 1), TokenKind::Semicolon),
-            Token::new(Span::new(41, 6), TokenKind::Return),
-            Token::new(Span::new(48, 1), TokenKind::Identifier("a".to_string())),
-            Token::new(Span::new(50, 1), TokenKind::Percent),
-            Token::new(Span::new(52, 2), TokenKind::Integer(IntBase::Decimal, "10".to_string())),
-            Token::new(Span::new(54, 1), TokenKind::Semicolon),
-            Token::new(Span::new(56, 1), TokenKind::RCurly),
+            Token::new(Span::new(23, 1), TokenKind::Colon),
+            Token::new(Span::new(25, 2), TokenKind::U8),
+            Token::new(Span::new(28, 1), TokenKind::Assign),
+            Token::new(Span::new(30, 2), TokenKind::Integer(IntBase::Decimal, "10".to_string())),
+            Token::new(Span::new(33, 1), TokenKind::Star),
+            Token::new(Span::new(35, 1), TokenKind::LParen),
+            Token::new(Span::new(36, 1), TokenKind::Integer(IntBase::Decimal, "2".to_string())),
+            Token::new(Span::new(38, 2), TokenKind::LShift),
+            Token::new(Span::new(41, 1), TokenKind::Integer(IntBase::Decimal, "3".to_string())),
+            Token::new(Span::new(42, 1), TokenKind::RParen),
+            Token::new(Span::new(43, 1), TokenKind::Semicolon),
+            Token::new(Span::new(45, 6), TokenKind::Return),
+            Token::new(Span::new(52, 1), TokenKind::Identifier("a".to_string())),
+            Token::new(Span::new(54, 1), TokenKind::Percent),
+            Token::new(Span::new(56, 2), TokenKind::Integer(IntBase::Decimal, "10".to_string())),
+            Token::new(Span::new(58, 1), TokenKind::Semicolon),
+            Token::new(Span::new(60, 1), TokenKind::RCurly),
         ];
 
         let decl = Parser::new(input.into_iter()).parse_decl().unwrap();
         assert_eq!(decl, FunctionDecl::new(
-            Span::new(0, 8) + Span::new(56, 1),
+            Span::new(0, 8) + Span::new(60, 1),
             FunctionDeclName::new(Span::new(9, 4), "main".to_string()),
             Vec::new(),
             FunctionDeclBody::new(
-                Span::new(16, 1) + Span::new(56, 1),
+                Span::new(16, 1) + Span::new(60, 1),
                 vec![
                     LetStmt::new(
-                        Span::new(18, 3) + Span::new(39, 1),
+                        Span::new(18, 3) + Span::new(43, 1),
                         LetStmtName::new(Span::new(22, 1), "a".to_string()),
+                        LetStmtType::new(Span::new(25, 2), Types::U8),
                         Some(InfixExpr::new(
-                            IntExpr::new(Span::new(26, 2), 10).into(),
+                            IntExpr::new(Span::new(30, 2), 10).into(),
                             SurrExpr::new(
-                                Span::new(31, 1) + Span::new(38, 1),
+                                Span::new(35, 1) + Span::new(42, 1),
                                 InfixExpr::new(
-                                    IntExpr::new(Span::new(32, 1), 2).into(),
-                                    IntExpr::new(Span::new(37, 1), 3).into(),
-                                    InfixOp::new(Span::new(34, 2), InfixOpKind::LShift)
+                                    IntExpr::new(Span::new(36, 1), 2).into(),
+                                    IntExpr::new(Span::new(41, 1), 3).into(),
+                                    InfixOp::new(Span::new(38, 2), InfixOpKind::LShift)
                                 ).into(),
                             ).into(),
-                            InfixOp::new(Span::new(29, 1), InfixOpKind::Mul)
+                            InfixOp::new(Span::new(33, 1), InfixOpKind::Mul)
                         ).into())
                     ).into(),
                     ReturnStmt::new(
-                        Span::new(41, 6) + Span::new(54, 1),
+                        Span::new(45, 6) + Span::new(58, 1),
                         Some(InfixExpr::new(
-                            IdentExpr::new(Span::new(48, 1), "a".to_string()).into(),
-                            IntExpr::new(Span::new(52, 2), 10).into(),
-                            InfixOp::new(Span::new(50, 1), InfixOpKind::Mod)
+                            IdentExpr::new(Span::new(52, 1), "a".to_string()).into(),
+                            IntExpr::new(Span::new(56, 2), 10).into(),
+                            InfixOp::new(Span::new(54, 1), InfixOpKind::Mod)
                         ).into())
                     ).into()
                 ]

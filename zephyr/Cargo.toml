@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 zephyr-lexer = { path = "../zephyr-lexer" }
+zephyr-parser = { path = "../zephyr-parser" }
