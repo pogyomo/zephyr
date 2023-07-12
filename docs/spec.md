@@ -109,6 +109,7 @@ _42 // this is identifier, not integer literal
 
 ```
 <declarative> ::= <function-decl>
+                | <struct-decl>
 ```
 
 ### Function Declaration
@@ -120,6 +121,38 @@ _42 // this is identifier, not integer literal
                   | <function-arg>
 <function-arg>  ::= <identifier> ":" <types>
 <function-body> ::= "{" { <statement> } "}"
+```
+
+### Struct Declaration
+
+```
+<struct-decl> ::= "struct" <identifier> "{" <struct-fields> "}"
+<struct-fields> ::= <struct-field>
+                  | <struct-field> "," <struct-fields>
+<struct-field> ::= <identifier> ":" <types>
+```
+
+```
+struct Hoge {
+    a: u8,
+    b: i8,
+}
+```
+
+### Union Declaration
+
+```
+<union-decl> ::= "union" <identifier> "{" <union-fields> "}"
+<union-fields> ::= <union-field>
+                  | <union-field> "," <union-fields>
+<union-field> ::= <identifier> ":" <types>
+```
+
+```
+union Hoge {
+    a: u8,
+    b: i8,
+}
 ```
 
 ## Statement

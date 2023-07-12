@@ -73,3 +73,97 @@ impl Spannable for FunctionDeclBody {
         self.span
     }
 }
+
+/// struct name {
+///     field1,
+///     field2,
+///     ...
+///     fieldn,
+/// }
+#[derive(new)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct StructDecl {
+    span: Span,
+    pub name: StructDeclName,
+    pub fields: Vec<StructDeclField>,
+}
+
+impl Spannable for StructDecl {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+#[derive(new)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct StructDeclName {
+    span: Span,
+    pub name: String,
+}
+
+impl Spannable for StructDeclName {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+#[derive(new)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct StructDeclField {
+    span: Span,
+    pub name: String,
+    pub r#type: Types,
+}
+
+impl Spannable for StructDeclField {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+/// union name {
+///     field1,
+///     field2,
+///     ...
+///     fieldn,
+/// }
+#[derive(new)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct UnionDecl {
+    span: Span,
+    pub name: UnionDeclName,
+    pub fields: Vec<UnionDeclField>,
+}
+
+impl Spannable for UnionDecl {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+#[derive(new)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct UnionDeclName {
+    span: Span,
+    pub name: String,
+}
+
+impl Spannable for UnionDeclName {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+#[derive(new)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct UnionDeclField {
+    span: Span,
+    pub name: String,
+    pub r#type: Types,
+}
+
+impl Spannable for UnionDeclField {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
