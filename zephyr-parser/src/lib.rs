@@ -500,7 +500,11 @@ impl<I: Iterator<Item = Token>> Parser<I> {
         let end_span = loop {
             let token = self.peek_or_err(")")?;
             match token.kind {
-                TokenKind::RParen => break token.span,
+                TokenKind::RParen => {
+                    let span = token.span;
+                    self.consume();
+                    break span;
+                }
                 _ => (),
             }
 
