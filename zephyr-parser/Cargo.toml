@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-nonempty = "0.8.1"
 thiserror = "1.0.43"
 zephyr-ast = { path = "../zephyr-ast" }
 zephyr-span = { path = "../zephyr-span" }
