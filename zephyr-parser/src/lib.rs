@@ -48,7 +48,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
 
 impl<I: Iterator<Item = Token>> Parser<I> {
     fn parse_decl(&mut self) -> Result<Declarative, ParseError> {
-        let token = self.peek_or_err()?;
+        let token = self.peek_or_err("function")?;
         match token.kind {
             TokenKind::Function => Ok(self.parse_func_decl()?.into()),
             _ => Err(ParseError::UnexpectedToken {
@@ -58,9 +58,9 @@ impl<I: Iterator<Item = Token>> Parser<I> {
     }
 
     fn parse_func_decl(&mut self) -> Result<FunctionDecl, ParseError> {
-        let mut span = self.consume_or_err()?.span;
+        let mut span = self.consume_or_err("function")?.span;
 
-        let token = self.consume_or_err()?;
+        let token = self.consume_or_err("identifier")?;
         let name = match token.kind {
             TokenKind::Identifier(name) => {
                 span += token.span;
@@ -71,7 +71,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
             })
         };
 
-        let token = self.consume_or_err()?;
+        let token = self.consume_or_err("(")?;
         match token.kind {
             TokenKind::LParen => span += token.span,
             _ => return Err(ParseError::UnexpectedToken {
@@ -81,7 +81,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
 
         let mut args = Vec::new();
         loop {
-            let token = self.consume_or_err()?;
+            let token = self.consume_or_err("identifier or )")?;
             match token.kind {
                 TokenKind::Identifier(name) => {
                     span += token.span;
@@ -96,7 +96,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
                 })
             }
 
-            let token = self.consume_or_err()?;
+            let token = self.consume_or_err(", or )")?;
             match token.kind {
                 TokenKind::Comma => span += token.span,
                 TokenKind::RParen => {
@@ -109,7 +109,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
             }
         }
 
-        let token = self.consume_or_err()?;
+        let token = self.consume_or_err("{")?;
         let mut body_span = token.span;
         match token.kind {
             TokenKind::LCurly => {
@@ -122,7 +122,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
 
         let mut body = Vec::new();
         loop {
-            let token = self.peek_or_err()?;
+            let token = self.peek_or_err("}")?;
             match token.kind {
                 TokenKind::RCurly => {
                     body_span += token.span;
@@ -143,7 +143,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
 
 impl<I: Iterator<Item = Token>> Parser<I> {
     fn parse_stmt(&mut self) -> Result<Statement, ParseError> {
-        let token = self.peek_or_err()?;
+        let token = self.peek_or_err("let or return")?;
         match token.kind {
             TokenKind::Let    => Ok(self.parse_let_stmt()?.into()),
             TokenKind::Return => Ok(self.parse_return_stmt()?.into()),
@@ -152,9 +152,9 @@ impl<I: Iterator<Item = Token>> Parser<I> {
     }
 
     fn parse_let_stmt(&mut self) -> Result<LetStmt, ParseError> {
-        let mut span = self.consume_or_err()?.span;
+        let mut span = self.consume_or_err("let")?.span;
 
-        let token = self.consume_or_err()?;
+        let token = self.consume_or_err("identifier")?;
         let name = match token.kind {
             TokenKind::Identifier(name) => {
                 span += token.span;
@@ -165,7 +165,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
             })
         };
 
-        let token = self.consume_or_err()?;
+        let token = self.consume_or_err("; or =")?;
         match token.kind {
             TokenKind::Assign => {
                 span += token.span;
@@ -182,7 +182,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
         let expr = self.parse_expr()?;
         span += expr.span();
 
-        let token = self.consume_or_err()?;
+        let token = self.consume_or_err(";")?;
         match token.kind {
             TokenKind::Semicolon => {
                 span += token.span;
@@ -195,9 +195,9 @@ impl<I: Iterator<Item = Token>> Parser<I> {
     }
 
     fn parse_return_stmt(&mut self) -> Result<ReturnStmt, ParseError> {
-        let mut span = self.consume_or_err()?.span;
+        let mut span = self.consume_or_err("return")?.span;
 
-        let token = self.peek_or_err()?;
+        let token = self.peek_or_err(";")?;
         match token.kind {
             TokenKind::Semicolon => {
                 span += token.span;
@@ -209,7 +209,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
         let expr = self.parse_expr()?;
         span += expr.span();
 
-        let token = self.consume_or_err()?;
+        let token = self.consume_or_err(";")?;
         match token.kind {
             TokenKind::Semicolon => {
                 span += token.span;
@@ -498,7 +498,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
         }
         let mut args = Vec::new();
         let end_span = loop {
-            let token = self.peek_or_err()?;
+            let token = self.peek_or_err(")")?;
             match token.kind {
                 TokenKind::RParen => break token.span,
                 _ => (),
@@ -506,7 +506,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
 
             args.push(self.parse_expr()?);
 
-            let token = self.consume_or_err()?;
+            let token = self.consume_or_err(", or )")?;
             match token.kind {
                 TokenKind::Comma => (),
                 TokenKind::RParen => break token.span,
@@ -530,21 +530,17 @@ impl<I: Iterator<Item = Token>> Parser<I> {
         ret
     }
 
-    fn consume_or_err(&mut self) -> Result<Token, ParseError> {
+    fn consume_or_err(&mut self, expect: &'static str) -> Result<Token, ParseError> {
         let span = self.last_span;
-        self.consume().ok_or(ParseError::ExpectedToken {
-            span, expect: "any token"
-        })
+        self.consume().ok_or(ParseError::ExpectedToken { span, expect })
     }
 
     fn peek(&mut self) -> Option<&Token> {
         self.curr.as_ref()
     }
 
-    fn peek_or_err(&mut self) -> Result<&Token, ParseError> {
+    fn peek_or_err(&mut self, expect: &'static str) -> Result<&Token, ParseError> {
         let span = self.last_span;
-        self.peek().ok_or(ParseError::ExpectedToken {
-            span, expect: "any token"
-        })
+        self.peek().ok_or(ParseError::ExpectedToken { span, expect })
     }
 }
