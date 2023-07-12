@@ -18,6 +18,16 @@ pub enum ParseError {
     UnexpectedToken { span: Span, expect: &'static str },
 }
 
+impl Spannable for ParseError {
+    fn span(&self) -> Span {
+        match *self {
+            ParseError::ExpectedToken { span, .. } => span,
+            ParseError::FailedToParseInteger { span, .. } => span,
+            ParseError::UnexpectedToken { span, .. } => span,
+        }
+    }
+}
+
 pub struct Parser<I> {
     tokens: I,
     curr: Option<Token>,
