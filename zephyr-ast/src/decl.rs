@@ -4,11 +4,23 @@ use zephyr_types::Types;
 use crate::Statement;
 use crate::impl_from;
 
-impl_from!(Declarative, FunctionDecl);
+impl_from!(Declarative, FunctionDecl, StructDecl, UnionDecl);
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Declarative {
     FunctionDecl(FunctionDecl),
+    StructDecl(StructDecl),
+    UnionDecl(UnionDecl),
+}
+
+impl Spannable for Declarative {
+    fn span(&self) -> Span {
+        match self {
+            Declarative::FunctionDecl(func) => func.span(),
+            Declarative::StructDecl(strct) => strct.span(),
+            Declarative::UnionDecl(uni) => uni.span(),
+        }
+    }
 }
 
 /// function name(args) body

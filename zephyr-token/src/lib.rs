@@ -112,6 +112,10 @@ pub enum TokenKind {
     Return,
     /// "let"
     Let,
+    /// "struct"
+    Struct,
+    /// "union"
+    Union,
     /// "u8"
     U8,
     /// "i8"
