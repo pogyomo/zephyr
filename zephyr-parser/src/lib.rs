@@ -568,3 +568,81 @@ impl<I: Iterator<Item = Token>> Parser<I> {
         self.peek().ok_or(ParseError::ExpectedToken { span, expect })
     }
 }
+
+#[cfg(test)]
+mod test {
+    use zephyr_ast::{
+        FunctionDecl, FunctionDeclName, FunctionDeclBody, LetStmt, LetStmtName, IntExpr, ReturnStmt,
+        InfixExpr, IdentExpr, InfixOp, InfixOpKind, SurrExpr
+    };
+    use zephyr_span::Span;
+    use zephyr_token::{Token, TokenKind, IntBase};
+    use crate::Parser;
+
+    #[test]
+    fn function() {
+        // function main() { let a = 10 * (2 << 3); return a % 10; }
+        let input = vec![
+            Token::new(Span::new(0, 8),  TokenKind::Function),
+            Token::new(Span::new(9, 4),  TokenKind::Identifier("main".to_string())),
+            Token::new(Span::new(13, 1), TokenKind::LParen),
+            Token::new(Span::new(14, 1), TokenKind::RParen),
+            Token::new(Span::new(16, 1), TokenKind::LCurly),
+            Token::new(Span::new(18, 3), TokenKind::Let),
+            Token::new(Span::new(22, 1), TokenKind::Identifier("a".to_string())),
+            Token::new(Span::new(24, 1), TokenKind::Assign),
+            Token::new(Span::new(26, 2), TokenKind::Integer(IntBase::Decimal, "10".to_string())),
+            Token::new(Span::new(29, 1), TokenKind::Star),
+            Token::new(Span::new(31, 1), TokenKind::LParen),
+            Token::new(Span::new(32, 1), TokenKind::Integer(IntBase::Decimal, "2".to_string())),
+            Token::new(Span::new(34, 2), TokenKind::LShift),
+            Token::new(Span::new(37, 1), TokenKind::Integer(IntBase::Decimal, "3".to_string())),
+            Token::new(Span::new(38, 1), TokenKind::RParen),
+            Token::new(Span::new(39, 1), TokenKind::Semicolon),
+            Token::new(Span::new(41, 6), TokenKind::Return),
+            Token::new(Span::new(48, 1), TokenKind::Identifier("a".to_string())),
+            Token::new(Span::new(50, 1), TokenKind::Percent),
+            Token::new(Span::new(52, 2), TokenKind::Integer(IntBase::Decimal, "10".to_string())),
+            Token::new(Span::new(54, 1), TokenKind::Semicolon),
+            Token::new(Span::new(56, 1), TokenKind::RCurly),
+        ];
+
+        let ast = Parser::new(input.into_iter()).parse().unwrap();
+        assert_eq!(ast, vec![
+            FunctionDecl::new(
+                Span::new(0, 8) + Span::new(56, 1),
+                FunctionDeclName::new(Span::new(9, 4), "main".to_string()),
+                Vec::new(),
+                FunctionDeclBody::new(
+                    Span::new(16, 1) + Span::new(56, 1),
+                    vec![
+                        LetStmt::new(
+                            Span::new(18, 3) + Span::new(39, 1),
+                            LetStmtName::new(Span::new(22, 1), "a".to_string()),
+                            Some(InfixExpr::new(
+                                IntExpr::new(Span::new(26, 2), 10).into(),
+                                SurrExpr::new(
+                                    Span::new(31, 1) + Span::new(38, 1),
+                                    InfixExpr::new(
+                                        IntExpr::new(Span::new(32, 1), 2).into(),
+                                        IntExpr::new(Span::new(37, 1), 3).into(),
+                                        InfixOp::new(Span::new(34, 2), InfixOpKind::LShift)
+                                    ).into(),
+                                ).into(),
+                                InfixOp::new(Span::new(29, 1), InfixOpKind::Mul)
+                            ).into())
+                        ).into(),
+                        ReturnStmt::new(
+                            Span::new(41, 6) + Span::new(54, 1),
+                            Some(InfixExpr::new(
+                                IdentExpr::new(Span::new(48, 1), "a".to_string()).into(),
+                                IntExpr::new(Span::new(52, 2), 10).into(),
+                                InfixOp::new(Span::new(50, 1), InfixOpKind::Mod)
+                            ).into())
+                        ).into()
+                    ]
+                )
+            ).into()
+        ])
+    }
+}
