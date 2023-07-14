@@ -22,13 +22,13 @@ impl Spannable for Statement {
     }
 }
 
-/// let name [ = expr ];
+/// let name [ : type ] [ = expr ];
 #[derive(new)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct LetStmt {
     span: Span,
     pub name: LetStmtName,
-    pub r#type: LetStmtType,
+    pub r#type: Option<LetStmtType>,
     pub expr: Option<Expression>,
 }
 
