@@ -408,6 +408,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
         match token.kind {
             TokenKind::Semicolon => {
                 span += token.span;
+                self.consume();
                 return Ok(ReturnStmt::new(span, None))
             }
             _ => (),
