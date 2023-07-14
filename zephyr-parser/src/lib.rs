@@ -75,6 +75,12 @@ impl<I: Iterator<Item = Token>> Parser<I> {
             TokenKind::I8 => {
                 Ok((Types::I8, token.span))
             }
+            TokenKind::U16 => {
+                Ok((Types::U16, token.span))
+            }
+            TokenKind::I16 => {
+                Ok((Types::I16, token.span))
+            }
             TokenKind::Identifier(name) => {
                 Ok((Types::TypeName(name), token.span))
             }

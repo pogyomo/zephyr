@@ -120,6 +120,10 @@ pub enum TokenKind {
     U8,
     /// "i8"
     I8,
+    /// "u16"
+    U16,
+    /// "i16"
+    I16,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
