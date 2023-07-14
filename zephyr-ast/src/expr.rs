@@ -134,6 +134,8 @@ impl Spannable for UnaryOp {
 pub enum UnaryOpKind {
     /// "-"
     Minus,
+    /// "&"
+    Ref,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]

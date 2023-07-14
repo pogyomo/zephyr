@@ -215,6 +215,7 @@ union Hoge {
                               | <unary-expression> "%" <multiplicative-expression>
 <unary-expression> ::= <dotaccess-expression>
                      | "-" <unary-expression>
+                     | "&" <unary-expression>
 <dotaccess-expression> ::= <primary-expression>
                          | <primary-expression> "." <dotaccess-expression>
 <primary-expression> ::= <identifier>

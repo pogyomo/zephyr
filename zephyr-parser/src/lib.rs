@@ -673,6 +673,12 @@ impl<I: Iterator<Item = Token>> Parser<I> {
                     let expr = self.parse_unary_expr()?;
                     Ok(UnaryExpr::new(expr, UnaryOp::new(span, UnaryOpKind::Minus)).into())
                 }
+                TokenKind::BitAnd => {
+                    let span = token.span;
+                    self.consume();
+                    let expr = self.parse_unary_expr()?;
+                    Ok(UnaryExpr::new(expr, UnaryOp::new(span, UnaryOpKind::Ref)).into())
+                }
                 _ => self.parse_dotaccess_expr(),
             }
         } else {
