@@ -1,8 +1,29 @@
 # The Zephyr Programming Language Specification
 
-## General elements
+## Table Of Contents
 
-### Alphabet and digit
+- [General Element](#general-elements)
+    - [Alphabet And Digit](#alphabet-and-digit)
+- [Lexical Items](#lexical-items)
+    - [Comment](#comment)
+    - [Identifier](#identifier)
+    - [Operators And Symbols](#operators-and-symbols)
+    - [Keywords](#keywords)
+    - [Integer Literal](#integer-literal)
+    - [Types](#types)
+- [Declarative Items](#declarative-items)
+    - [Function Declaration](#function-declaration)
+    - [Struct Declaration](#struct-declaration)
+    - [Union Declaration](#union-declaration)
+- [Statement](#statement)
+    - [Let Statement](#let-statement)
+    - [Expression Statement](#expression-statement)
+    - [Return Statement](#return-statement)
+- [Expression](#expression)
+
+## General Elements
+
+### Alphabet And Digit
 
 ```
 <alphabet>          ::= "a" .. "z" | "A" .. "Z"
@@ -12,7 +33,7 @@
 <hexadecimal-digit> ::= "0" .. "9" | "a" .. "f" | "A" .. "F"
 ```
 
-## Lexical items
+## Lexical Items
 
 ### Comment
 
@@ -50,7 +71,7 @@ _ident12
 12ident // start with numeric is not valid
 ```
 
-### Operator and symbols
+### Operators and symbols
 
 Below is operators and symbols which the lexer recognize.
 
@@ -63,13 +84,13 @@ Below is operators and symbols which the lexer recognize.
 ( ) [ ] { } : ; , .
 ```
 
-### keywords
+### Keywords
 
 ```
 function return let
 ```
 
-### Integer iteral
+### Integer Literal
 
 An integer is a list of alphabet or numeric. 
 You can separate digit with `_`, but end with it is not allowed.
@@ -105,11 +126,12 @@ _42 // this is identifier, not integer literal
 <pointer> ::= "*" <types>
 ```
 
-## Declarative item
+## Declarative Items
 
 ```
 <declarative> ::= <function-decl>
                 | <struct-decl>
+                | <union-decl>
 ```
 
 ### Function Declaration
