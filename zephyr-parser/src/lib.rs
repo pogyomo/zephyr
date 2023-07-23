@@ -5,7 +5,7 @@ use zephyr_ast::{
     IntExpr, IdentExpr, FuncCallExpr, FuncCallExprName, LetStmt, ReturnStmt, ExprStmt, LetStmtName, 
     FunctionDecl, FunctionDeclName, FunctionDeclArg, SurrExpr, LetStmtType, StructDecl, 
     UnionDecl, StructDeclField, StructDeclName, UnionDeclField, UnionDeclName, FunctionDeclRetType,
-    BoolExpr, BlockStmt, WhileStmt, IfStmt, ElseStmt
+    BoolExpr, BlockStmt, WhileStmt, IfStmt, ElseStmt, Program
 };
 use zephyr_span::{Span, Spannable};
 use zephyr_token::{Token, TokenKind};
@@ -43,19 +43,19 @@ impl<I: Iterator<Item = Token>> Parser<I> {
         Self { tokens, curr, last_span: Span::new(0, 0) }
     }
 
-    pub fn parse(mut self) -> Result<Vec<Declarative>, ParseError> {
+    pub fn parse(mut self) -> Result<Program, ParseError> {
         match self.curr {
             Some(ref token) => {
                 self.last_span = token.span; // Update last available token's span
             }
-            None => return Ok(Vec::new()),
+            None => return Ok(Program(Vec::new())),
         }
 
         let mut decls = Vec::new();
         while self.curr.is_some() {
             decls.push(self.parse_decl()?);
         }
-        Ok(decls)
+        Ok(Program(decls))
     }
 }
 
