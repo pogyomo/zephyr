@@ -3,8 +3,9 @@ use thiserror::Error;
 use zephyr_ast::{
     Expression, Declarative, Statement, InfixExpr, InfixOp, InfixOpKind, UnaryExpr, UnaryOp, UnaryOpKind,
     IntExpr, IdentExpr, FuncCallExpr, FuncCallExprName, LetStmt, ReturnStmt, ExprStmt, LetStmtName, 
-    FunctionDecl, FunctionDeclName, FunctionDeclArg, FunctionDeclBody, SurrExpr, LetStmtType, StructDecl, 
-    UnionDecl, StructDeclField, StructDeclName, UnionDeclField, UnionDeclName, FunctionDeclRetType, BoolExpr, BlockStmt, WhileStmt, IfStmt, ElseStmt
+    FunctionDecl, FunctionDeclName, FunctionDeclArg, SurrExpr, LetStmtType, StructDecl, 
+    UnionDecl, StructDeclField, StructDeclName, UnionDeclField, UnionDeclName, FunctionDeclRetType,
+    BoolExpr, BlockStmt, WhileStmt, IfStmt, ElseStmt
 };
 use zephyr_span::{Span, Spannable};
 use zephyr_token::{Token, TokenKind};
@@ -179,36 +180,11 @@ impl<I: Iterator<Item = Token>> Parser<I> {
             }
             _ => None,
         };
+        
+        let body = self.parse_block_stmt()?;
+        span += body.span();
 
-        let token = self.consume_or_err("{")?;
-        let mut body_span = token.span;
-        match token.kind {
-            TokenKind::LCurly => {
-                span += token.span;
-            }
-            _ => return Err(ParseError::UnexpectedToken {
-                span: token.span, expect: "{"
-            })
-        }
-
-        let mut body = Vec::new();
-        loop {
-            let token = self.peek_or_err("}")?;
-            match token.kind {
-                TokenKind::RCurly => {
-                    body_span += token.span;
-                    span += token.span;
-                    self.consume();
-                    break;
-                }
-                _ => (),
-            }
-            let stmt = self.parse_stmt()?;
-            body_span += stmt.span();
-            body.push(stmt);
-        }
-
-        Ok(FunctionDecl::new(span, name, args, ret_type, FunctionDeclBody::new(body_span, body)))
+        Ok(FunctionDecl::new(span, name, args, ret_type, body))
     }
 
     fn parse_struct_decl(&mut self) -> Result<StructDecl, ParseError> {
@@ -873,8 +849,8 @@ impl<I: Iterator<Item = Token>> Parser<I> {
 #[cfg(test)]
 mod test {
     use zephyr_ast::{
-        FunctionDecl, FunctionDeclName, FunctionDeclBody, LetStmt, LetStmtName, IntExpr, ReturnStmt,
-        InfixExpr, IdentExpr, InfixOp, InfixOpKind, SurrExpr, LetStmtType
+        FunctionDecl, FunctionDeclName, LetStmt, LetStmtName, IntExpr, ReturnStmt,
+        InfixExpr, IdentExpr, InfixOp, InfixOpKind, SurrExpr, LetStmtType, BlockStmt
     };
     use zephyr_span::Span;
     use zephyr_token::{Token, TokenKind, IntBase};
@@ -917,7 +893,7 @@ mod test {
             FunctionDeclName::new(Span::new(9, 4), "main".to_string()),
             Vec::new(),
             None,
-            FunctionDeclBody::new(
+            BlockStmt::new(
                 Span::new(16, 1) + Span::new(60, 1),
                 vec![
                     LetStmt::new(

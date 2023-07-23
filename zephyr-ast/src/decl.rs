@@ -1,7 +1,7 @@
 use derive_new::new;
 use zephyr_span::{Span, Spannable};
 use zephyr_types::Types;
-use crate::Statement;
+use crate::BlockStmt;
 use crate::impl_from;
 
 impl_from!(Declarative, FunctionDecl, StructDecl, UnionDecl);
@@ -31,7 +31,7 @@ pub struct FunctionDecl {
     pub name: FunctionDeclName,
     pub args: Vec<FunctionDeclArg>,
     pub ret_type: Option<FunctionDeclRetType>,
-    pub body: FunctionDeclBody,
+    pub body: BlockStmt,
 }
 
 impl Spannable for FunctionDecl {
@@ -76,25 +76,6 @@ pub struct FunctionDeclRetType {
 }
 
 impl Spannable for FunctionDeclRetType {
-    fn span(&self) -> Span {
-        self.span
-    }
-}
-
-/// {
-///     stmt1;
-///     stmt2;
-///     ...
-///     stmtn;
-/// }
-#[derive(new)]
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct FunctionDeclBody {
-    span: Span, // This span include '{' and '}'
-    body: Vec<Statement>,
-}
-
-impl Spannable for FunctionDeclBody {
     fn span(&self) -> Span {
         self.span
     }

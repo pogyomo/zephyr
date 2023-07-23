@@ -149,7 +149,7 @@ _42 // this is identifier, not integer literal
 <function-args> ::= <function-arg> "," <function-args>
                   | <function-arg>
 <function-arg>  ::= <identifier> ":" <types>
-<function-body> ::= "{" { <statement> } "}"
+<function-body> ::= <block-stmt>
 ```
 
 ### Struct Declaration
