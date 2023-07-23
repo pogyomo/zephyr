@@ -4,6 +4,7 @@ pub enum Types {
     I8,
     U16,
     I16,
+    Bool,
     TypeName(String),
     Pointer(Box<Types>),
 }

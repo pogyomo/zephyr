@@ -116,6 +116,10 @@ pub enum TokenKind {
     Struct,
     /// "union"
     Union,
+    /// "true"
+    True,
+    /// "false"
+    False,
     /// "u8"
     U8,
     /// "i8"
@@ -124,6 +128,8 @@ pub enum TokenKind {
     U16,
     /// "i16"
     I16,
+    /// "bool",
+    Bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]

@@ -4,7 +4,7 @@ use zephyr_ast::{
     Expression, Declarative, Statement, InfixExpr, InfixOp, InfixOpKind, UnaryExpr, UnaryOp, UnaryOpKind,
     IntExpr, IdentExpr, FuncCallExpr, FuncCallExprName, LetStmt, ReturnStmt, ExprStmt, LetStmtName, 
     FunctionDecl, FunctionDeclName, FunctionDeclArg, FunctionDeclBody, SurrExpr, LetStmtType, StructDecl, 
-    UnionDecl, StructDeclField, StructDeclName, UnionDeclField, UnionDeclName, FunctionDeclRetType
+    UnionDecl, StructDeclField, StructDeclName, UnionDeclField, UnionDeclName, FunctionDeclRetType, BoolExpr
 };
 use zephyr_span::{Span, Spannable};
 use zephyr_token::{Token, TokenKind};
@@ -80,6 +80,9 @@ impl<I: Iterator<Item = Token>> Parser<I> {
             }
             TokenKind::I16 => {
                 Ok((Types::I16, token.span))
+            }
+            TokenKind::Bool => {
+                Ok((Types::Bool, token.span))
             }
             TokenKind::Identifier(name) => {
                 Ok((Types::TypeName(name), token.span))
@@ -721,6 +724,8 @@ impl<I: Iterator<Item = Token>> Parser<I> {
                     })
                 }
             }
+            TokenKind::True => Ok(BoolExpr::new(token.span, true).into()),
+            TokenKind::False => Ok(BoolExpr::new(token.span, false).into()),
             TokenKind::LParen => {
                 let mut span = token.span;
                 let expr = self.parse_expr()?;

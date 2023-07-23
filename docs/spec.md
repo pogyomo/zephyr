@@ -87,7 +87,7 @@ Below is operators and symbols which the lexer recognize.
 ### Keywords
 
 ```
-function return let
+function return let struct union true false u8 i8 u16 i16 bool
 ```
 
 ### Integer Literal
@@ -122,7 +122,12 @@ _42 // this is identifier, not integer literal
 ```
 <types> ::= "u8"
           | "i8"
+          | "u16"
+          | "i16"
+          | "bool"
+          | <typename>
           | <pointer>
+<typename> ::= <identifier>
 <pointer> ::= "*" <types>
 ```
 
@@ -243,6 +248,8 @@ union Hoge {
                          | <primary-expression> "." <dotaccess-expression>
 <primary-expression> ::= <identifier>
                        | <integer-lit>
+                       | "true"
+                       | "false"
                        | <function-call-expression>
                        | "(" <expression> ")"
 <function-call-expression> ::= <identifier> "(" [ <function-call-expression-args> ] ")"
