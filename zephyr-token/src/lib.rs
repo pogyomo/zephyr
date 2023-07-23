@@ -112,6 +112,12 @@ pub enum TokenKind {
     Return,
     /// "let"
     Let,
+    /// "while"
+    While,
+    /// "if",
+    If,
+    /// "else"
+    Else,
     /// "struct"
     Struct,
     /// "union"

@@ -17,6 +17,8 @@
     - [Union Declaration](#union-declaration)
 - [Statement](#statement)
     - [Let Statement](#let-statement)
+    - [While Statement](#while-statement)
+    - [If Statement](#if-statement)
     - [Expression Statement](#expression-statement)
     - [Return Statement](#return-statement)
 - [Expression](#expression)
@@ -186,14 +188,35 @@ union Hoge {
 
 ```
 <statement> ::= <let-stmt>
+              | <block-stmt>
+              | <while-stmt>
+              | <if-stmt>
               | <expression-stmt>
               | <return-stmt>
 ```
 
-### Let statement
+### Let Statement
 
 ```
 <let-stmt> ::= "let" <identifier> ":" <types> [ "=" <expression> ] ";"
+```
+
+### Block Statement
+
+```
+<block-stmt> ::= "{" { <statement> } "}"
+```
+
+### While Statement
+
+```
+<while-stmt> ::= "while" <expression> <block-stmt>
+```
+
+### If Statement
+
+```
+<if-stmt> ::= "if" <expression> <block-stmt> [ "else" ( <block-stmt> | <if-stmt> ) ]
 ```
 
 ### Expression statement

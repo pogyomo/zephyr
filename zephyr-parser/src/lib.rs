@@ -4,7 +4,7 @@ use zephyr_ast::{
     Expression, Declarative, Statement, InfixExpr, InfixOp, InfixOpKind, UnaryExpr, UnaryOp, UnaryOpKind,
     IntExpr, IdentExpr, FuncCallExpr, FuncCallExprName, LetStmt, ReturnStmt, ExprStmt, LetStmtName, 
     FunctionDecl, FunctionDeclName, FunctionDeclArg, FunctionDeclBody, SurrExpr, LetStmtType, StructDecl, 
-    UnionDecl, StructDeclField, StructDeclName, UnionDeclField, UnionDeclName, FunctionDeclRetType, BoolExpr
+    UnionDecl, StructDeclField, StructDeclName, UnionDeclField, UnionDeclName, FunctionDeclRetType, BoolExpr, BlockStmt, WhileStmt, IfStmt, ElseStmt
 };
 use zephyr_span::{Span, Spannable};
 use zephyr_token::{Token, TokenKind};
@@ -346,10 +346,31 @@ impl<I: Iterator<Item = Token>> Parser<I> {
     fn parse_stmt(&mut self) -> Result<Statement, ParseError> {
         let token = self.peek_or_err("let or return")?;
         match token.kind {
+            TokenKind::LCurly => Ok(self.parse_block_stmt()?.into()),
             TokenKind::Let    => Ok(self.parse_let_stmt()?.into()),
+            TokenKind::While  => Ok(self.parse_while_stmt()?.into()),
+            TokenKind::If     => Ok(self.parse_if_stmt()?.into()),
             TokenKind::Return => Ok(self.parse_return_stmt()?.into()),
             _ => Ok(self.parse_expr_stmt()?.into()),
         }
+    }
+
+    fn parse_block_stmt(&mut self) -> Result<BlockStmt, ParseError> {
+        let mut span = self.consume_or_err("{")?.span;
+
+        let mut stmts = Vec::new();
+        loop {
+            let token = self.peek_or_err("any token")?;
+            match token.kind {
+                TokenKind::RCurly => {
+                    span += token.span;
+                    self.consume();
+                    break;
+                }
+                _ => stmts.push(self.parse_stmt()?),
+            }
+        }
+        Ok(BlockStmt::new(span, stmts))
     }
 
     fn parse_let_stmt(&mut self) -> Result<LetStmt, ParseError> {
@@ -407,6 +428,49 @@ impl<I: Iterator<Item = Token>> Parser<I> {
             _ => Err(ParseError::UnexpectedToken {
                 span: token.span, expect: ";"
             })
+        }
+    }
+
+    fn parse_while_stmt(&mut self) -> Result<WhileStmt, ParseError> {
+        let mut span = self.consume_or_err("while")?.span;
+
+        let expr = self.parse_expr()?;
+
+        let body = self.parse_block_stmt()?;
+        span += body.span();
+
+        Ok(WhileStmt::new(span, expr, body))
+    }
+
+    fn parse_if_stmt(&mut self) -> Result<IfStmt, ParseError> {
+        let mut span = self.consume_or_err("if")?.span;
+
+        let expr = self.parse_expr()?;
+
+        let body = self.parse_block_stmt()?;
+        span += body.span();
+
+        if let Some(token) = self.peek() {
+            match token.kind {
+                TokenKind::Else => self.consume(),
+                _ => return Ok(IfStmt::new(span, expr, body, None)),
+            };
+        } else {
+            return Ok(IfStmt::new(span, expr, body, None))
+        }
+
+        let token = self.peek_or_err("if or anything")?;
+        match token.kind {
+            TokenKind::If => {
+                let elseif = ElseStmt::ElseIf(self.parse_if_stmt()?);
+                span += elseif.span();
+                Ok(IfStmt::new(span, expr, body, Some(elseif)))
+            }
+            _ => {
+                let elseif = ElseStmt::Else(self.parse_block_stmt()?);
+                span += elseif.span();
+                Ok(IfStmt::new(span, expr, body, Some(elseif)))
+            }
         }
     }
 
@@ -712,7 +776,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
     }
 
     fn parse_primary_expr(&mut self) -> Result<Expression, ParseError> {
-        let token = self.consume_or_err("identifier or integer")?;
+        let token = self.consume_or_err("true, false, (, identifier or integer")?;
         match token.kind {
             TokenKind::Identifier(name) => self.parse_func_call(name, token.span),
             TokenKind::Integer(base, body) => {
@@ -741,7 +805,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
                 }
             }
             _ => Err(ParseError::UnexpectedToken {
-                span: token.span, expect: "identifier or integer"
+                span: token.span, expect: "true, false, (, identifier or integer"
             })
         }
     }

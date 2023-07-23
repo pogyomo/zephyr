@@ -3,11 +3,14 @@ use zephyr_span::{Spannable, Span};
 use zephyr_types::Types;
 use crate::{Expression, impl_from};
 
-impl_from!(Statement, LetStmt, ExprStmt, ReturnStmt);
+impl_from!(Statement, BlockStmt, LetStmt, WhileStmt, IfStmt, ExprStmt, ReturnStmt);
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Statement {
+    BlockStmt(BlockStmt),
     LetStmt(LetStmt),
+    WhileStmt(WhileStmt),
+    IfStmt(IfStmt),
     ExprStmt(ExprStmt),
     ReturnStmt(ReturnStmt),
 }
@@ -15,10 +18,32 @@ pub enum Statement {
 impl Spannable for Statement {
     fn span(&self) -> zephyr_span::Span {
         match self {
+            Statement::BlockStmt(block) => block.span(),
             Statement::LetStmt(lets) => lets.span(),
+            Statement::WhileStmt(stmt) => stmt.span(),
+            Statement::IfStmt(stmt) => stmt.span(),
             Statement::ExprStmt(expr) => expr.span(),
             Statement::ReturnStmt(ret) => ret.span(),
         }
+    }
+}
+
+/// {
+///     stmt1
+///     stmt2
+///     ...
+///     stmtn
+/// }
+#[derive(new)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct BlockStmt {
+    span: Span,
+    pub stmts: Vec<Statement>,
+}
+
+impl Spannable for BlockStmt {
+    fn span(&self) -> Span {
+        self.span
     }
 }
 
@@ -35,6 +60,66 @@ pub struct LetStmt {
 impl Spannable for LetStmt {
     fn span(&self) -> Span {
         self.span
+    }
+}
+
+/// while expr body
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct WhileStmt {
+    span: Span,
+    pub expr: Expression,
+    pub body: Box<BlockStmt>,
+}
+
+impl WhileStmt {
+    pub fn new(span: Span, expr: Expression, body: BlockStmt) -> Self {
+        Self { span, expr, body: Box::new(body) }
+    }
+}
+
+impl Spannable for WhileStmt {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+/// if expr body1 [ else ( body | if... )]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct IfStmt {
+    span: Span,
+    pub expr: Expression,
+    pub body: Box<BlockStmt>,
+    pub r#else: Option<Box<ElseStmt>>,
+}
+
+impl IfStmt {
+    pub fn new(span: Span, expr: Expression, body: BlockStmt, r#else: Option<ElseStmt>) -> Self {
+        Self {
+            span, expr,
+            body: Box::new(body),
+            r#else: r#else.map(|v| Box::new(v))
+        }
+    }
+}
+
+impl Spannable for IfStmt {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ElseStmt {
+    Else(BlockStmt),
+    ElseIf(IfStmt),
+}
+
+impl Spannable for ElseStmt {
+    fn span(&self) -> Span {
+        match self {
+            ElseStmt::Else(blk) => blk.span(),
+            ElseStmt::ElseIf(stmt) => stmt.span(),
+        }
     }
 }
 

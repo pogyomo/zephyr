@@ -234,6 +234,9 @@ impl<'a> Iterator for Lexer<'a> {
                     "bool" => TokenKind::Bool,
                     "true" => TokenKind::True,
                     "false" => TokenKind::False,
+                    "if" => TokenKind::If,
+                    "else" => TokenKind::Else,
+                    "while" => TokenKind::While,
                     _ => TokenKind::Identifier(ident),
                 };
                 Some(Token::new(Span::new(start, self.offset() - start), kind))
@@ -330,7 +333,7 @@ mod test {
 
     #[test]
     fn keyword() {
-        let input = "function return let struct union u8 i8 u16 i16 bool true false";
+        let input = "function return let struct union u8 i8 u16 i16 bool true false if else while";
         let tokens = Lexer::new(input).collect::<Vec<_>>();
         assert_eq!(tokens, vec![
             Token::new(Span::new(0, 8),  TokenKind::Function),
@@ -345,6 +348,9 @@ mod test {
             Token::new(Span::new(47, 2), TokenKind::Bool),
             Token::new(Span::new(50, 4), TokenKind::True),
             Token::new(Span::new(55, 5), TokenKind::False),
+            Token::new(Span::new(61, 2), TokenKind::If),
+            Token::new(Span::new(64, 4), TokenKind::Else),
+            Token::new(Span::new(69, 5), TokenKind::While),
         ])
     }
 }
