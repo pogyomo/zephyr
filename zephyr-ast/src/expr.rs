@@ -136,6 +136,8 @@ pub enum UnaryOpKind {
     Minus,
     /// "&"
     Ref,
+    /// "*"
+    Deref,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
