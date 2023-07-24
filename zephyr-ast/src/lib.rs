@@ -6,6 +6,7 @@ pub use decl::*;
 pub use expr::*;
 pub use stmt::*;
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Program(pub Vec<Declarative>);
 
 #[macro_export]
