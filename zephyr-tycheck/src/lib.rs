@@ -276,6 +276,8 @@ fn typeof_expr(expr: &Expression, val_tbl: &ValTable, func_tbl: &FuncTable) -> R
         }
         Expression::UnaryExpr(unary) => typeof_expr(&unary.expr, val_tbl, func_tbl),
         Expression::InfixExpr(infix) => {
+            // TODO: Check the application of the operator is valid for the types
+
             let lhs = typeof_expr(&infix.lhs, val_tbl, func_tbl)?;
             let rhs = typeof_expr(&infix.rhs, val_tbl, func_tbl)?;
             if lhs.amb_eq(&rhs) {
