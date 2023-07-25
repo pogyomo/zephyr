@@ -85,6 +85,7 @@ version = "0.1.0"
 dependencies = [
  "zephyr-lexer",
  "zephyr-parser",
+ "zephyr-tycheck",
 ]
 
 [[package]]
@@ -135,6 +136,8 @@ version = "0.1.0"
 dependencies = [
  "thiserror",
  "zephyr-ast",
+ "zephyr-span",
+ "zephyr-types",
 ]
 
 [[package]]

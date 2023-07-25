@@ -6,3 +6,5 @@ edition = "2021"
 [dependencies]
 thiserror = "1.0.44"
 zephyr-ast = { path = "../zephyr-ast" }
+zephyr-span = { path = "../zephyr-span" }
+zephyr-types = { path = "../zephyr-types" }
