@@ -174,6 +174,7 @@ impl UnionTable {
     }
 }
 
+
 /// Check types of given program and add correct type to objects.
 pub fn type_check(prog: Program) -> Result<Program, TypeCheckError> {
     let mut result = Vec::new();
@@ -317,6 +318,13 @@ fn type_check_stmt(
                     val_tbl.add(_let.name.name.clone(), ty);
                     Ok(_let.into())
                 }
+                // TODO: Currently we can guess the type of variable if rhs has concrete type: if
+                //       the type of rhs is integer, we can't guess types.
+                //       For example, in the below code
+                //          let a = 10;
+                //          let b: *u8 = &a;
+                //       the type of a must be u8, but we can't guess the type because we only
+                //       consider current type of rhs. Any good solution?
                 (None, Some(ty)) => {
                     match ty {
                         Types::Integer => return Err(TypeCheckError::CantGuessVariableType {
