@@ -521,6 +521,15 @@ fn typeof_expr(
             }
             Ok(ret_type.clone())
         }
-        Expression::StructOrUnionExpr(expr) => Ok(Types::TypeName(expr.name.name.clone())),
+        Expression::StructOrUnionExpr(expr) => {
+            if struct_tbl.is_exist(&expr.name.name) || union_tbl.is_exist(&expr.name.name) {
+                Ok(Types::TypeName(expr.name.name.clone()))
+            } else {
+                Err(TypeCheckError::NoSuchStructOrUnionExist {
+                    name: expr.name.name.clone(),
+                    span: expr.span(),
+                })
+            }
+        }
     }
 }
