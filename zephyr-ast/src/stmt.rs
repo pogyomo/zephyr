@@ -53,7 +53,7 @@ impl Spannable for BlockStmt {
 pub struct LetStmt {
     span: Span,
     pub name: LetStmtName,
-    pub r#type: Option<LetStmtType>,
+    pub r#type: LetStmtType,
     pub expr: Option<Expression>,
 }
 

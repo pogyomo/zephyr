@@ -22,6 +22,7 @@ impl Types {
         use Types::*;
 
         match (self, other) {
+            (Pointer(l), Pointer(r)) => l.amb_eq(&*r),
             (Integer, o) | (o, Integer) => {
                 match o {
                     U8 => true,

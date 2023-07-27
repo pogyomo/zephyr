@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use thiserror::Error;
 use zephyr_ast::{
-    Program, Expression, Declarative, FunctionDecl, Statement, ElseStmt, LetStmtType, InfixOpKind, UnaryOpKind
+    Program, Expression, Declarative, FunctionDecl, Statement, ElseStmt, InfixOpKind, UnaryOpKind
 };
 use zephyr_span::{Span, Spannable};
 use zephyr_types::Types;
@@ -20,8 +20,6 @@ pub enum TypeCheckError {
     IfConditionHasNonBooleanExpression { got: Types, span: Span },
     #[error("while condition has non boolean expression: got {got}")]
     WhileConditionHasNonBooleanExpression { got: Types, span: Span },
-    #[error("variable must have either type or initial value")]
-    VariableDeclarationWithoutTypesAndValue { span: Span },
     #[error("the function return type and return statement's type different: expect {expect}, but got {got}")]
     DifferentTypeOfReturnValue { expect: Types, got: Types, span: Span },
     #[error("the type {got} doesn't have field")]
@@ -36,6 +34,8 @@ pub enum TypeCheckError {
     CantTakeNegationForTheType { got: Types, span: Span },
     #[error("can't deref non-pointer type: got {got}")]
     CantDerefNonPointerType { got: Types, span: Span },
+    #[error("type of lhs and rhs different at let statement: lhs is {lhs_ty} and rhs is {rhs_ty}")]
+    LetWithDifferentTypes { lhs_ty: Types, rhs_ty: Types, lhs: Span, rhs: Span },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -291,40 +291,28 @@ fn type_check_stmt(
             Ok(_if.into())
         }
         Statement::LetStmt(mut _let) => {
-            let lhs_type = _let.r#type.as_ref().map(|v| v.r#type.clone());
+            let lhs_type = _let.r#type.r#type.clone();
             let rhs_type = match _let.expr {
                 Some(ref expr) => Some(typeof_expr(expr, val_tbl, func_tbl, struct_tbl, union_tbl)?),
                 None => None,
             };
             match (lhs_type, rhs_type) {
-                (Some(lt), Some(rt)) => {
-                    if lt.amb_eq(&rt) {
-                        val_tbl.add(_let.name.name.clone(), lt);
+                (lt, Some(rt)) => {
+                    if !lt.amb_eq(&rt) {
+                        return Err(TypeCheckError::LetWithDifferentTypes {
+                            lhs_ty: lt, rhs_ty: rt,
+                            lhs: _let.r#type.span(),
+                            rhs: _let.expr.unwrap().span(),
+                        });
                     }
+
+                    val_tbl.add(_let.name.name.clone(), lt.clone());
                     Ok(_let.into())
                 }
-                (Some(ty), None) => {
+                (ty, None) => {
                     val_tbl.add(_let.name.name.clone(), ty);
                     Ok(_let.into())
                 }
-                (None, Some(ty)) => {
-                    val_tbl.add(_let.name.name.clone(), ty.clone());
-
-                    // FIXME: We temporary assign u8 to the variable if rhs is come from integer
-                    //        literal. Is there any other good types?
-                    let ty = match ty {
-                        Types::Integer => Types::U8,
-                        _ => ty,
-                    };
-
-                    // FIXME: Span of this type is empty.
-                    _let.r#type = Some(LetStmtType::new(Span::new(0, 0), ty));
-
-                    Ok(_let.into())
-                }
-                _ => Err(TypeCheckError::VariableDeclarationWithoutTypesAndValue {
-                    span: _let.span()
-                })
             }
         }
         Statement::WhileStmt(mut _while) => {
