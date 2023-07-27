@@ -5,7 +5,7 @@ use zephyr_ast::{
     IntExpr, IdentExpr, FuncCallExpr, FuncCallExprName, LetStmt, ReturnStmt, ExprStmt, LetStmtName, 
     FunctionDecl, FunctionDeclName, FunctionDeclArg, SurrExpr, LetStmtType, StructDecl, 
     UnionDecl, StructDeclField, StructDeclName, UnionDeclField, UnionDeclName, FunctionDeclRetType,
-    BoolExpr, BlockStmt, WhileStmt, IfStmt, ElseStmt, Program
+    BoolExpr, BlockStmt, WhileStmt, IfStmt, ElseStmt, Program, AssignOpKind, AssignStmt, AssignOp
 };
 use zephyr_span::{Span, Spannable};
 use zephyr_token::{Token, TokenKind};
@@ -327,7 +327,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
             TokenKind::While  => Ok(self.parse_while_stmt()?.into()),
             TokenKind::If     => Ok(self.parse_if_stmt()?.into()),
             TokenKind::Return => Ok(self.parse_return_stmt()?.into()),
-            _ => Ok(self.parse_expr_stmt()?.into()),
+            _ => self.parse_expr_or_assign_stmt(),
         }
     }
 
@@ -478,15 +478,33 @@ impl<I: Iterator<Item = Token>> Parser<I> {
         }
     }
 
-    fn parse_expr_stmt(&mut self) -> Result<ExprStmt, ParseError> {
+    fn parse_expr_or_assign_stmt(&mut self) -> Result<Statement, ParseError> {
         let expr = self.parse_expr()?;
-        let Some(token) = self.consume() else {
-            return Err(ParseError::ExpectedToken {
-                span: self.last_span, expect: ";"
-            });
+
+        let token = self.consume_or_err("; or =")?;
+        let op = match token.kind {
+            TokenKind::Semicolon => return Ok(ExprStmt::new(expr.span() + token.span, expr).into()),
+            TokenKind::Assign    => AssignOp::new(token.span, AssignOpKind::Assign),
+            TokenKind::AddAssign => AssignOp::new(token.span, AssignOpKind::AddAssign),
+            TokenKind::SubAssign => AssignOp::new(token.span, AssignOpKind::SubAssign),
+            TokenKind::MulAssign => AssignOp::new(token.span, AssignOpKind::MulAssign),
+            TokenKind::DivAssign => AssignOp::new(token.span, AssignOpKind::DivAssign),
+            TokenKind::ModAssign => AssignOp::new(token.span, AssignOpKind::ModAssign),
+            TokenKind::AndAssign => AssignOp::new(token.span, AssignOpKind::AndAssign),
+            TokenKind::OrAssign  => AssignOp::new(token.span, AssignOpKind::OrAssign),
+            TokenKind::XorAssign => AssignOp::new(token.span, AssignOpKind::XorAssign),
+            TokenKind::LshAssign => AssignOp::new(token.span, AssignOpKind::LshAssign),
+            TokenKind::RshAssign => AssignOp::new(token.span, AssignOpKind::RshAssign),
+            _ => return Err(ParseError::UnexpectedToken {
+                span: token.span, expect: "; or ="
+            })
         };
+
+        let rhs = self.parse_expr()?;
+
+        let token = self.consume_or_err(";")?;
         match token.kind {
-            TokenKind::Semicolon => Ok(ExprStmt::new(expr.span() + token.span, expr)),
+            TokenKind::Semicolon => Ok(AssignStmt::new(expr.span() + token.span, expr, rhs, op).into()),
             _ => Err(ParseError::UnexpectedToken {
                 span: token.span, expect: ";"
             })

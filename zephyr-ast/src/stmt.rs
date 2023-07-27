@@ -3,12 +3,13 @@ use zephyr_span::{Spannable, Span};
 use zephyr_types::Types;
 use crate::{Expression, impl_from};
 
-impl_from!(Statement, BlockStmt, LetStmt, WhileStmt, IfStmt, ExprStmt, ReturnStmt);
+impl_from!(Statement, BlockStmt, LetStmt, AssignStmt, WhileStmt, IfStmt, ExprStmt, ReturnStmt);
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Statement {
     BlockStmt(BlockStmt),
     LetStmt(LetStmt),
+    AssignStmt(AssignStmt),
     WhileStmt(WhileStmt),
     IfStmt(IfStmt),
     ExprStmt(ExprStmt),
@@ -20,6 +21,7 @@ impl Spannable for Statement {
         match self {
             Statement::BlockStmt(block) => block.span(),
             Statement::LetStmt(lets) => lets.span(),
+            Self::AssignStmt(assign) => assign.span(),
             Statement::WhileStmt(stmt) => stmt.span(),
             Statement::IfStmt(stmt) => stmt.span(),
             Statement::ExprStmt(expr) => expr.span(),
@@ -61,6 +63,87 @@ impl Spannable for LetStmt {
     fn span(&self) -> Span {
         self.span
     }
+}
+
+#[derive(new)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct LetStmtName {
+    span: Span,
+    pub name: String,
+}
+
+impl Spannable for LetStmtName {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+#[derive(new)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct LetStmtType {
+    span: Span,
+    pub r#type: Types,
+}
+
+impl Spannable for LetStmtType {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+/// expr = expr;
+#[derive(new)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct AssignStmt {
+    span: Span,
+    pub lhs: Expression,
+    pub rhs: Expression,
+    pub op: AssignOp,
+}
+
+impl Spannable for AssignStmt {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+#[derive(new)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub struct AssignOp {
+    span: Span,
+    pub kind: AssignOpKind,
+}
+
+impl Spannable for AssignOp {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum AssignOpKind {
+    /// "="
+    Assign,
+    /// "+-"
+    AddAssign,
+    /// "-="
+    SubAssign,
+    /// "*="
+    MulAssign,
+    /// "/="
+    DivAssign,
+    /// "%="
+    ModAssign,
+    /// "&="
+    AndAssign,
+    /// "|="
+    OrAssign,
+    /// "^="
+    XorAssign,
+    /// "<<="
+    LshAssign,
+    /// ">>="
+    RshAssign,
 }
 
 /// while expr body
@@ -120,32 +203,6 @@ impl Spannable for ElseStmt {
             ElseStmt::Else(blk) => blk.span(),
             ElseStmt::ElseIf(stmt) => stmt.span(),
         }
-    }
-}
-
-#[derive(new)]
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct LetStmtName {
-    span: Span,
-    pub name: String,
-}
-
-impl Spannable for LetStmtName {
-    fn span(&self) -> Span {
-        self.span
-    }
-}
-
-#[derive(new)]
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct LetStmtType {
-    span: Span,
-    pub r#type: Types,
-}
-
-impl Spannable for LetStmtType {
-    fn span(&self) -> Span {
-        self.span
     }
 }
 

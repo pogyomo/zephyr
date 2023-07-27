@@ -40,6 +40,8 @@ pub enum TypeCheckError {
     VariableDeclaredWithoutTypeAndValue { span: Span },
     #[error("can't guess type of the variable: rhs has no concrete type")]
     CantGuessVariableType { span: Span },
+    #[error("can't assign different type of value: lhs is {lhs_ty} but rhs is {rhs_ty}")]
+    CantAssignDifferentTypeOfValue { lhs_ty: Types, rhs_ty: Types, span: Span },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -373,6 +375,17 @@ fn type_check_stmt(
                 _ => (),
             }
             Ok(stmt)
+        }
+        Statement::AssignStmt(assign) => {
+            let lhs = typeof_expr(&assign.lhs, val_tbl, func_tbl, struct_tbl, union_tbl)?;
+            let rhs = typeof_expr(&assign.rhs, val_tbl, func_tbl, struct_tbl, union_tbl)?;
+            if lhs.amb_eq(&rhs) {
+                Ok(assign.into())
+            } else {
+                Err(TypeCheckError::CantAssignDifferentTypeOfValue {
+                    lhs_ty: lhs, rhs_ty: rhs, span: assign.span()
+                })
+            }
         }
     }
 }
