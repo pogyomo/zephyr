@@ -776,9 +776,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
                 match self.peek_or_err("( or {")?.kind {
                     TokenKind::LParen => self.parse_func_call(name, token.span),
                     TokenKind::LCurly => self.parse_struct_or_union_expr(name, token.span),
-                    _ => Err(ParseError::UnexpectedToken {
-                        span: token.span, expect: "( or {"
-                    })
+                    _ => Ok(IdentExpr::new(token.span, name).into()),
                 }
             }
             TokenKind::Integer(base, body) => {
@@ -813,12 +811,14 @@ impl<I: Iterator<Item = Token>> Parser<I> {
     }
 
     fn parse_func_call(&mut self, name: String, start_span: Span) -> Result<Expression, ParseError> {
-        if let Some(token) = self.peek() {
-            match token.kind {
-                TokenKind::LParen => self.consume(),
-                _ => return Ok(IdentExpr::new(start_span, name).into()),
-            };
-        }
+        let token = self.consume_or_err("(")?;
+        match token.kind {
+            TokenKind::LCurly => (),
+            _ => return Err(ParseError::UnexpectedToken {
+                span: token.span, expect: "("
+            })
+        };
+
         let mut args = Vec::new();
         let end_span = loop {
             let token = self.peek_or_err(")")?;
