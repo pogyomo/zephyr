@@ -17,6 +17,7 @@
     - [Union Declaration](#union-declaration)
 - [Statement](#statement)
     - [Let Statement](#let-statement)
+    - [Assign Statement](#assign-statement)
     - [While Statement](#while-statement)
     - [If Statement](#if-statement)
     - [Expression Statement](#expression-statement)
@@ -188,6 +189,7 @@ union Hoge {
 
 ```
 <statement> ::= <let-stmt>
+              | <assign-stmt>
               | <block-stmt>
               | <while-stmt>
               | <if-stmt>
@@ -199,6 +201,23 @@ union Hoge {
 
 ```
 <let-stmt> ::= "let" <identifier> [ ":" <types> ] [ "=" <expression> ] ";"
+```
+
+### Assign Statement
+
+```
+<assign-stmt> ::= <expression> <assign-op> <expression> ";"
+<assign-op> ::= "="
+              | "+="
+              | "-="
+              | "*="
+              | "/="
+              | "%="
+              | "&="
+              | "|="
+              | "^="
+              | "<<="
+              | ">>="
 ```
 
 ### Block Statement
