@@ -521,5 +521,6 @@ fn typeof_expr(
             }
             Ok(ret_type.clone())
         }
+        Expression::StructOrUnionExpr(expr) => Ok(Types::TypeName(expr.name.name.clone())),
     }
 }

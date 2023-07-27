@@ -2,7 +2,10 @@ use derive_new::new;
 use zephyr_span::{Span, Spannable};
 use crate::impl_from;
 
-impl_from!(Expression, SurrExpr, IdentExpr, IntExpr, BoolExpr, UnaryExpr, InfixExpr, FuncCallExpr);
+impl_from!(
+    Expression,
+    SurrExpr, IdentExpr, IntExpr, BoolExpr, StructOrUnionExpr, UnaryExpr, InfixExpr, FuncCallExpr
+);
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Expression {
@@ -10,6 +13,7 @@ pub enum Expression {
     IdentExpr(IdentExpr),
     IntExpr(IntExpr),
     BoolExpr(BoolExpr),
+    StructOrUnionExpr(StructOrUnionExpr),
     FuncCallExpr(FuncCallExpr),
     UnaryExpr(UnaryExpr),
     InfixExpr(InfixExpr),
@@ -22,6 +26,7 @@ impl Spannable for Expression {
             Expression::IdentExpr(ident) => ident.span(),
             Expression::IntExpr(int) => int.span(),
             Expression::BoolExpr(bool) => bool.span(),
+            Expression::StructOrUnionExpr(expr) => expr.span(),
             Expression::FuncCallExpr(call) => call.span(),
             Expression::UnaryExpr(unary) => unary.span(),
             Expression::InfixExpr(infix) => infix.span(),
@@ -82,6 +87,47 @@ pub struct BoolExpr {
 }
 
 impl Spannable for BoolExpr {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+#[derive(new)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct StructOrUnionExpr {
+    span: Span,
+    pub name: StructOrUnionExprName,
+    pub fields: Vec<StructOrUnionExprField>,
+}
+
+impl Spannable for StructOrUnionExpr {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+#[derive(new)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct StructOrUnionExprName {
+    span: Span,
+    pub name: String,
+}
+
+impl Spannable for StructOrUnionExprName {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+#[derive(new)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct StructOrUnionExprField {
+    span: Span,
+    pub field: String,
+    pub expr: Expression,
+}
+
+impl Spannable for StructOrUnionExprField {
     fn span(&self) -> Span {
         self.span
     }

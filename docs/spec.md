@@ -290,10 +290,15 @@ union Hoge {
                          | <primary-expression> "." <dotaccess-expression>
 <primary-expression> ::= <identifier>
                        | <integer-lit>
+                       | <struct-or-union-expression>
                        | "true"
                        | "false"
                        | <function-call-expression>
                        | "(" <expression> ")"
+<struct-or-union-expression> ::= <identifier> "{" <struct-or-union-expression-fields> "}"
+<struct-or-union-expression-fields> ::= <struct-or-union-expression-field>
+                                      | <struct-or-union-expression-field> "," <struct-or-union-expression-fields>
+<struct-or-union-expression-field> ::= <identifier> "=" <expression>
 <function-call-expression> ::= <identifier> "(" [ <function-call-expression-args> ] ")"
 <function-call-expression-args> ::= <expression>
                                   | <expression> "," <expression>

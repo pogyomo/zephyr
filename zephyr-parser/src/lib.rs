@@ -5,7 +5,7 @@ use zephyr_ast::{
     IntExpr, IdentExpr, FuncCallExpr, FuncCallExprName, LetStmt, ReturnStmt, ExprStmt, LetStmtName, 
     FunctionDecl, FunctionDeclName, FunctionDeclArg, SurrExpr, LetStmtType, StructDecl, 
     UnionDecl, StructDeclField, StructDeclName, UnionDeclField, UnionDeclName, FunctionDeclRetType,
-    BoolExpr, BlockStmt, WhileStmt, IfStmt, ElseStmt, Program, AssignOpKind, AssignStmt, AssignOp
+    BoolExpr, BlockStmt, WhileStmt, IfStmt, ElseStmt, Program, AssignOpKind, AssignStmt, AssignOp, StructOrUnionExprField, StructOrUnionExpr, StructOrUnionExprName
 };
 use zephyr_span::{Span, Spannable};
 use zephyr_token::{Token, TokenKind};
@@ -772,7 +772,15 @@ impl<I: Iterator<Item = Token>> Parser<I> {
     fn parse_primary_expr(&mut self) -> Result<Expression, ParseError> {
         let token = self.consume_or_err("true, false, (, identifier or integer")?;
         match token.kind {
-            TokenKind::Identifier(name) => self.parse_func_call(name, token.span),
+            TokenKind::Identifier(name) => {
+                match self.peek_or_err("( or {")?.kind {
+                    TokenKind::LParen => self.parse_func_call(name, token.span),
+                    TokenKind::LCurly => self.parse_struct_or_union_expr(name, token.span),
+                    _ => Err(ParseError::UnexpectedToken {
+                        span: token.span, expect: "( or {"
+                    })
+                }
+            }
             TokenKind::Integer(base, body) => {
                 let body = body.chars().filter(|c| *c != '_').collect::<String>();
                 match u64::from_str_radix(body.as_str(), base.into()) {
@@ -836,6 +844,60 @@ impl<I: Iterator<Item = Token>> Parser<I> {
         };
         let name = FuncCallExprName::new(start_span, name);
         Ok(FuncCallExpr::new(start_span + end_span, name, args).into())
+    }
+
+    fn parse_struct_or_union_expr(&mut self, name: String, start_span: Span) -> Result<Expression, ParseError> {
+        let token = self.consume_or_err("{")?;
+        match token.kind {
+            TokenKind::LCurly => (),
+            _ => return Err(ParseError::UnexpectedToken {
+                span: token.span, expect: "{"
+            })
+        };
+
+        let mut fields = Vec::new();
+        let end_span = loop {
+            let token = self.peek_or_err("}")?;
+            match token.kind {
+                TokenKind::RCurly => {
+                    let span = token.span;
+                    self.consume();
+                    break span;
+                }
+                _ => (),
+            }
+
+            let token = self.consume_or_err("identifier")?;
+            let (name, span) = match token.kind {
+                TokenKind::Identifier(name) => (name, token.span),
+                _ => return Err(ParseError::UnexpectedToken {
+                    span: token.span, expect: "identifier"
+                })
+            };
+
+            let token = self.consume_or_err("=")?;
+            match token.kind {
+                TokenKind::Assign => (),
+                _ => return Err(ParseError::UnexpectedToken {
+                    span: token.span, expect: "="
+                })
+            }
+
+            let expr = self.parse_expr()?;
+            fields.push(StructOrUnionExprField::new(span + expr.span(), name, expr));
+
+            let token = self.consume_or_err(", or }")?;
+            match token.kind {
+                TokenKind::Comma => (),
+                TokenKind::RCurly => break token.span,
+                _ => return Err(ParseError::UnexpectedToken {
+                    span: token.span, expect: ", or }"
+                })
+            };
+        };
+
+        let name = StructOrUnionExprName::new(start_span, name);
+        Ok(StructOrUnionExpr::new(start_span + end_span, name, fields).into())
     }
 }
 
