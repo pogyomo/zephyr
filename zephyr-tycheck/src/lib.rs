@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use thiserror::Error;
 use zephyr_ast::{
-    Program, Expression, Declarative, FunctionDecl, Statement, ElseStmt, InfixOpKind, UnaryOpKind
+    Program, Expression, Declarative, FunctionDecl, Statement, ElseStmt, InfixOpKind, UnaryOpKind, LetStmtType
 };
 use zephyr_span::{Span, Spannable};
 use zephyr_types::Types;
@@ -36,6 +36,10 @@ pub enum TypeCheckError {
     CantDerefNonPointerType { got: Types, span: Span },
     #[error("type of lhs and rhs different at let statement: lhs is {lhs_ty} and rhs is {rhs_ty}")]
     LetWithDifferentTypes { lhs_ty: Types, rhs_ty: Types, lhs: Span, rhs: Span },
+    #[error("variable declared without type and initial value")]
+    VariableDeclaredWithoutTypeAndValue { span: Span },
+    #[error("can't guess type of the variable: rhs has no concrete type")]
+    CantGuessVariableType { span: Span },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -291,17 +295,17 @@ fn type_check_stmt(
             Ok(_if.into())
         }
         Statement::LetStmt(mut _let) => {
-            let lhs_type = _let.r#type.r#type.clone();
+            let lhs_type = _let.r#type.as_ref().map(|v| v.r#type.clone());
             let rhs_type = match _let.expr {
                 Some(ref expr) => Some(typeof_expr(expr, val_tbl, func_tbl, struct_tbl, union_tbl)?),
                 None => None,
             };
             match (lhs_type, rhs_type) {
-                (lt, Some(rt)) => {
+                (Some(lt), Some(rt)) => {
                     if !lt.amb_eq(&rt) {
                         return Err(TypeCheckError::LetWithDifferentTypes {
                             lhs_ty: lt, rhs_ty: rt,
-                            lhs: _let.r#type.span(),
+                            lhs: _let.r#type.unwrap().span(),
                             rhs: _let.expr.unwrap().span(),
                         });
                     }
@@ -309,10 +313,28 @@ fn type_check_stmt(
                     val_tbl.add(_let.name.name.clone(), lt.clone());
                     Ok(_let.into())
                 }
-                (ty, None) => {
+                (Some(ty), None) => {
                     val_tbl.add(_let.name.name.clone(), ty);
                     Ok(_let.into())
                 }
+                (None, Some(ty)) => {
+                    match ty {
+                        Types::Integer => return Err(TypeCheckError::CantGuessVariableType {
+                            span: _let.span()
+                        }),
+                        _ => (),
+                    }
+
+                    val_tbl.add(_let.name.name.clone(), ty.clone());
+
+                    // FIXME: Empty span here
+                    _let.r#type = Some(LetStmtType::new(Span::new(0, 0), ty));
+
+                    Ok(_let.into())
+                }
+                (None, None) => Err(TypeCheckError::VariableDeclaredWithoutTypeAndValue {
+                    span: _let.span()
+                })
             }
         }
         Statement::WhileStmt(mut _while) => {

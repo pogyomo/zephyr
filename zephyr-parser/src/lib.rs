@@ -363,20 +363,18 @@ impl<I: Iterator<Item = Token>> Parser<I> {
             })
         };
 
-        let token = self.consume_or_err(":")?;
+        let token = self.peek_or_err(":")?;
         let types = match token.kind {
             TokenKind::Colon => {
                 span += token.span;
+                self.consume();
 
                 let (types, type_span) = self.parse_type()?;
                 let types = LetStmtType::new(type_span, types);
                 span += type_span;
-                types
+                Some(types)
             }
-            _ => return Err(ParseError::UnexpectedToken {
-                span: token.span,
-                expect: ":"
-            }),
+            _ => None,
         };
 
 
@@ -901,7 +899,7 @@ mod test {
                     LetStmt::new(
                         Span::new(18, 3) + Span::new(43, 1),
                         LetStmtName::new(Span::new(22, 1), "a".to_string()),
-                        LetStmtType::new(Span::new(25, 2), Types::U8),
+                        Some(LetStmtType::new(Span::new(25, 2), Types::U8)),
                         Some(InfixExpr::new(
                             IntExpr::new(Span::new(30, 2), 10).into(),
                             SurrExpr::new(
