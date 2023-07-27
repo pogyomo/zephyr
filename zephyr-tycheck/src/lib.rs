@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use thiserror::Error;
 use zephyr_ast::{
-    Program, Expression, Declarative, FunctionDecl, Statement, ElseStmt, LetStmtType, InfixOpKind
+    Program, Expression, Declarative, FunctionDecl, Statement, ElseStmt, LetStmtType, InfixOpKind, UnaryOpKind
 };
 use zephyr_span::{Span, Spannable};
 use zephyr_types::Types;
@@ -32,6 +32,10 @@ pub enum TypeCheckError {
     NoSuchStructOrUnionExist { name: String, span: Span },
     #[error("no such field {field} exist on {name}")]
     NoSuchFieldExist { name: String, field: String, span: Span },
+    #[error("can't take nagetion for {got}: expect i8 or i16")]
+    CantTakeNegationForTheType { got: Types, span: Span },
+    #[error("can't deref non-pointer type: got {got}")]
+    CantDerefNonPointerType { got: Types, span: Span },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -371,8 +375,22 @@ fn typeof_expr(
             }
         }
         Expression::UnaryExpr(unary) => {
-            // TODO: Check the application of the operator is valid for the type
-            typeof_expr(&unary.expr, val_tbl, func_tbl, struct_tbl, union_tbl)
+            let ty = typeof_expr(&unary.expr, val_tbl, func_tbl, struct_tbl, union_tbl)?;
+            match unary.op.kind {
+                UnaryOpKind::Minus => match &ty {
+                    Types::I8 | Types::I16 => Ok(ty),
+                    _ => Err(TypeCheckError::CantTakeNegationForTheType {
+                        got: ty, span: unary.expr.span()
+                    })
+                }
+                UnaryOpKind::Deref => match &ty {
+                    Types::Pointer(to) => Ok(*to.clone()),
+                    _ => Err(TypeCheckError::CantDerefNonPointerType {
+                        got: ty, span: unary.expr.span()
+                    })
+                }
+                UnaryOpKind::Ref => Ok(Types::Pointer(Box::new(ty))),
+            }
         }
         Expression::InfixExpr(infix) => {
             use InfixOpKind::*;
