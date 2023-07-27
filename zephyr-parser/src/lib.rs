@@ -97,7 +97,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
 
 impl<I: Iterator<Item = Token>> Parser<I> {
     fn parse_decl(&mut self) -> Result<Declarative, ParseError> {
-        let token = self.peek_or_err("function")?;
+        let token = self.peek_or_err("function, struct or union")?;
         match token.kind {
             TokenKind::Function => Ok(self.parse_func_decl()?.into()),
             TokenKind::Struct => Ok(self.parse_struct_decl()?.into()),
