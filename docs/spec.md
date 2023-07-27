@@ -198,7 +198,7 @@ union Hoge {
 ### Let Statement
 
 ```
-<let-stmt> ::= "let" <identifier> ":" <types> [ "=" <expression> ] ";"
+<let-stmt> ::= "let" <identifier> [ ":" <types> ] [ "=" <expression> ] ";"
 ```
 
 ### Block Statement
