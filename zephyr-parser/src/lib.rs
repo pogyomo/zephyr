@@ -2,10 +2,11 @@ use std::num::ParseIntError;
 use thiserror::Error;
 use zephyr_ast::{
     Expression, Declarative, Statement, InfixExpr, InfixOp, InfixOpKind, UnaryExpr, UnaryOp, UnaryOpKind,
-    IntExpr, IdentExpr, FuncCallExpr, FuncCallExprName, LetStmt, ReturnStmt, ExprStmt, LetStmtName, 
-    FunctionDecl, FunctionDeclName, FunctionDeclArg, SurrExpr, LetStmtType, StructDecl, 
+    IntExpr, IdentExpr, FuncCallExpr, FuncCallExprName, LetStmt, ReturnStmt, ExprStmt, LetStmtName,
+    FunctionDecl, FunctionDeclName, FunctionDeclArg, SurrExpr, LetStmtType, StructDecl,
     UnionDecl, StructDeclField, StructDeclName, UnionDeclField, UnionDeclName, FunctionDeclRetType,
-    BoolExpr, BlockStmt, WhileStmt, IfStmt, ElseStmt, Program, AssignOpKind, AssignStmt, AssignOp, StructOrUnionExprField, StructOrUnionExpr, StructOrUnionExprName
+    BoolExpr, BlockStmt, WhileStmt, IfStmt, ElseStmt, Program, AssignOpKind, AssignStmt, AssignOp,
+    StructOrUnionExprField, StructOrUnionExpr, StructOrUnionExprName
 };
 use zephyr_span::{Span, Spannable};
 use zephyr_token::{Token, TokenKind};
@@ -813,7 +814,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
     fn parse_func_call(&mut self, name: String, start_span: Span) -> Result<Expression, ParseError> {
         let token = self.consume_or_err("(")?;
         match token.kind {
-            TokenKind::LCurly => (),
+            TokenKind::LParen => (),
             _ => return Err(ParseError::UnexpectedToken {
                 span: token.span, expect: "("
             })
